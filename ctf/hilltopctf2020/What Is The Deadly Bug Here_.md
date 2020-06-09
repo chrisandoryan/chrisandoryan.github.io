@@ -1,5 +1,8 @@
-What Is The Deadly Bug Here?
-
+---
+title: What Is The Deadly Bug Here?
+layout: page
+competition: hilltopctf2020
+---
 ## Description
 
 

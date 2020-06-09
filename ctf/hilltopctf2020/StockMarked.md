@@ -1,5 +1,8 @@
-StockMarked
-
+---
+title: StockMarked
+layout: page
+competition: hilltopctf2020
+---
 ## Description
 ![efa64bd1b328af15756e58713896f9e2.png](../../_resources/f4b0192cb9434642a073400b28e965b5.png)
 

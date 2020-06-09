@@ -72,4 +72,4 @@ collections:
     output: true
     permalink: /htb
   writeups:
-    output: true
+    output: false

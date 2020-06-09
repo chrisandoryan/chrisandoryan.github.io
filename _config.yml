@@ -71,5 +71,3 @@ collections:
   htb:
     output: true
     permalink: /htb
-  hilltopctf2020:
-    output: true

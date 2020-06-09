@@ -61,4 +61,11 @@ google_analytics:
 
 # The following settings are NECESSARY for the Prologue theme to run:
 remote_theme: chrisbobbe/jekyll-theme-prologue
-collections: [sections, ctf, htb]
+collections: 
+  - sections
+  - ctf:
+    output: true
+    permalink: /ctf
+  - htb:
+    output: true
+    permalink: /htb

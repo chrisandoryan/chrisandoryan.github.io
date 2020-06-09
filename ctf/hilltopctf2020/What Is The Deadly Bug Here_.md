@@ -1,6 +1,6 @@
 ---
 title: What Is The Deadly Bug Here?
-layout: page
+layout: post
 competition: hilltopctf2020
 ---
 ## Description

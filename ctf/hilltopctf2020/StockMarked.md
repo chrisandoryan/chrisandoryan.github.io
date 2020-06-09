@@ -1,6 +1,6 @@
 ---
 title: StockMarked
-layout: page
+layout: post
 competition: hilltopctf2020
 ---
 ## Description

@@ -4,7 +4,7 @@ author: Chris
 layout: post
 icon: fa-lightbulb
 icon-style: regular
-category: htb
+categories: htb
 ---
 See the icon?
 

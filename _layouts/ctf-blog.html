@@ -10,9 +10,8 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
-		<h1>{{- _post.category -}}</h1>
 		{%- capture _title -%}
-			<a href="{{- _post.url | absolute_url -}}">{{- _post.category -}}</a>
+			<a href="{{- _post.url | absolute_url -}}">{{- _post.title -}}</a>
 		{%- endcapture -%}
 		{%- capture _subtitle -%}
 			{% if _post.author -%}{{- _post.author }} | {% endif %}

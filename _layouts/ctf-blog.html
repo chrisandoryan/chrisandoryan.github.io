@@ -10,7 +10,9 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
-	{% if _post.categories == 'asdasd' %}
+	{% if _post.category == 'ctf' %}
+		<h1>{{- _post.category -}}</h1>
+	{% endif %}
 		{%- capture _title -%}
 			<a href="{{- _post.url | absolute_url -}}">{{- _post.title -}}</a>
 		{%- endcapture -%}
@@ -22,6 +24,5 @@ layout: default
 		{%- capture _link -%}<a href="{{- _post.url | absolute_url -}}">read more</a>{%- endcapture -%}
 		{%- assign _content = _excerpt | append: _link -%}
 		{%- include section.html title=_title subtitle=_subtitle content=_content -%}
-	{% endif %}
 	{%- endfor -%}
 </div>

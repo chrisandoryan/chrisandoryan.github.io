@@ -1,5 +1,5 @@
 ---
-title: [Web50] - Heist To The Port 
+title: Web Exploitation - Heist To The Port 
 layout: post
 competition: hilltopctf2020
 type: writeup

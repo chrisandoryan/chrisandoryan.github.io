@@ -1,8 +1,8 @@
 ---
-title: Heist To The Port
-layout: post
-competition: hilltopctf2020
+title: HilltopCTF 2020
+layout: ctf-writeup
 categories: ctf
+competition: hilltopctf2020
 ---
 ## Description
 

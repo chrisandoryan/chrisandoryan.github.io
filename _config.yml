@@ -71,6 +71,3 @@ collections:
   htb:
     output: true
     permalink: /htb
-  writeups:
-    output: true
-    permalink: /writeups

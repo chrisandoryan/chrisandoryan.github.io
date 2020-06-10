@@ -5,13 +5,13 @@ competition: hilltopctf2020
 ---
 ## Description
 
-![43c9742c71aadc1b9f5302c9d20957d2.png](../../_resources/ac124913209c4c54a939f9b3c2456685.png)
+![43c9742c71aadc1b9f5302c9d20957d2.png](/assets/images/ac124913209c4c54a939f9b3c2456685.png)
 
 ## Solving
 Given a plain text website that says **see what you don't**. 
 A simple GET request to the website returned `405 Method Not Allowed` status, which indicates that the request method is known but not supported to access the resources.
 
-![6e3ba5b304ed16152a99b0285cd1b0aa.png](../../_resources/aef2b0029df440eeba1bb235595802b4.png)
+![6e3ba5b304ed16152a99b0285cd1b0aa.png](/assets/images/aef2b0029df440eeba1bb235595802b4.png)
 
 Assuming from the challenge title, this challenge is related to HTTP protocol. So let's spin up `curl`.
 
@@ -76,11 +76,11 @@ I noticed that among the headers there is an `X-Note` header (which seems to be 
 
 In pursuit of allowing myself to the server, I examined the value of the cookie and found out that it was *base64-encoded*. 
 
-![053c6cf25c41af2165b7f288619b699f.png](../../_resources/05a05c47083e44569938fbaee856460e.png)
+![053c6cf25c41af2165b7f288619b699f.png](/assets/images/05a05c47083e44569938fbaee856460e.png)
 
 I decoded the cookie and found this:
 
-![caa5a9f746c5292c3509ab48478114be.png](../../_resources/3d7a0dfdadac48b0a4ac124883354d26.png)
+![caa5a9f746c5292c3509ab48478114be.png](/assets/images/3d7a0dfdadac48b0a4ac124883354d26.png)
 
 So I modified the value into `allow_access=true`, encoded it back into *base64* string, and send it again to the server.
 
@@ -338,7 +338,7 @@ curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRy
 And there's the flag.
 
 
-![bee463428aa994dbf3f8b4ff42d988fb.png](../../_resources/c0e10931d77d427a98f690908e6e8056.png)
+![bee463428aa994dbf3f8b4ff42d988fb.png](/assets/images/c0e10931d77d427a98f690908e6e8056.png)
 
 
 ## The Flag

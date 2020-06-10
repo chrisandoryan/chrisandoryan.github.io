@@ -6,18 +6,18 @@ competition: hilltopctf2020
 ## Description
 
 
-![c9fd42053c1860b5e8adc479279ffeef.png](../../_resources/ec6165ad18424803876d01a024adcda0.png)
+![c9fd42053c1860b5e8adc479279ffeef.png](/assets/images/ec6165ad18424803876d01a024adcda0.png)
 
 
 ## Solving
 
 Given a simple website that looks like this.
 
-![0956ba0662dbb4f93d2dcaa8e8f2527a.png](../../_resources/1f07699a5c3a4904a02dc7d34bc68f56.png)
+![0956ba0662dbb4f93d2dcaa8e8f2527a.png](/assets/images/1f07699a5c3a4904a02dc7d34bc68f56.png)
 
 Examining the response of the request, we could found some interesting headers.
 
-![662190ad5e6f3fa71a40cf56ef3f4240.png](../../_resources/64d64912595a4428b87bab10e38b0aeb.png)
+![662190ad5e6f3fa71a40cf56ef3f4240.png](/assets/images/64d64912595a4428b87bab10e38b0aeb.png)
 
 
 Sending the `?debug` parameter to the website showed us the source code of the challenge. 
@@ -134,7 +134,7 @@ From the manual:
 `-f` is the hash algorithm
 `-l` is the length of the secret, which is leaked when we visit `secret.php` page
 
-![5fb70b6dbb0ed2b07a53175556086711.png](../../_resources/2d86a44f5e294cadbda6a4d893b1b275.png)
+![5fb70b6dbb0ed2b07a53175556086711.png](/assets/images/2d86a44f5e294cadbda6a4d893b1b275.png)
 
 Then we get our new hash and new message.
 ```
@@ -143,7 +143,7 @@ New string: aboutme%2etxt%80%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%
 
 ```
 
-![98365288a99edd441e4e4743df0298b5.png](../../_resources/e49e327073c740f7a2194e00ef28c372.png)
+![98365288a99edd441e4e4743df0298b5.png](/assets/images/e49e327073c740f7a2194e00ef28c372.png)
 
 Don't worry about the null bytes in the new message, because fortunately the challenge used `filter_var` and those null bytes will be stripped before being passed into `passthru` function.
 
@@ -156,7 +156,7 @@ And there's the flag.
 
 
 
-![44cba8a2af6184dd0fe48900c4f53949.png](../../_resources/3d59ab4e510d4dad9a613a30c21e5100.png)
+![44cba8a2af6184dd0fe48900c4f53949.png](/assets/images/3d59ab4e510d4dad9a613a30c21e5100.png)
 
 
 

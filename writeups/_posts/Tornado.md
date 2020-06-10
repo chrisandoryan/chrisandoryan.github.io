@@ -6,40 +6,40 @@ competition: hilltopctf2020
 ## Description
 
 
-![42c3b9bfe404dd0da097d190907fbc59.png](../../_resources/d1654b04a8e847c8ad8c3df4e3b1c303.png)
+![42c3b9bfe404dd0da097d190907fbc59.png](/assets/images/d1654b04a8e847c8ad8c3df4e3b1c303.png)
 
 
 ## Solving
 Given a website that seems like a file-sharing utility.
 
-![e73d30b1969f58f091cd60a4b5c1adaf.png](../../_resources/d3b7f581a152465aa199d59eb2457018.png)
+![e73d30b1969f58f091cd60a4b5c1adaf.png](/assets/images/d3b7f581a152465aa199d59eb2457018.png)
 
 Judging by the web interface, the goal of this challenge is supposed to open the Flag folder. But if we tried to click on that folder, the web asks for an email address and a MagicHash.
 
 
-![2a8923dabb74671eb19d533dd129e577.png](../../_resources/2cf3a228e10a479a906edf385f8ce5fe.png)
+![2a8923dabb74671eb19d533dd129e577.png](/assets/images/2cf3a228e10a479a906edf385f8ce5fe.png)
 
 Notice that there's also a link to request the MagicHash. Upon clicking the link, we were redirected to `http://192.81.210.234:10003/request.php`. 
 
-![7f56ae1c54279544f21992a86ad66f11.png](../../_resources/ec27feda947346b59193ae0ce49fb464.png)
+![7f56ae1c54279544f21992a86ad66f11.png](/assets/images/ec27feda947346b59193ae0ce49fb464.png)
 
 
 We need to submit an email address to get the MagicHash. Submitting a random or unrecognized email will make the server responded with an error message, but that also gave us hint about the correct email; **admin@tornado.corp**.
 
 
-![7e9d8dafd69d7382da5c513e2c09e6de.png](../../_resources/28a1f43d176f4f1b8717ff3f717319cd.png)
+![7e9d8dafd69d7382da5c513e2c09e6de.png](/assets/images/28a1f43d176f4f1b8717ff3f717319cd.png)
 
 After sending the request with **admin@tornado.corp** email, the web told us that the MagicHash has been sent to the email.
 
 
-![78f0310f976c7c4d8a0f55d28deedf4d.png](../../_resources/0976a9562f024704b3c1a09390629773.png)
+![78f0310f976c7c4d8a0f55d28deedf4d.png](/assets/images/0976a9562f024704b3c1a09390629773.png)
 
 Since we don't have access to that email, we need to think of other ways to get the MagicHash. More information can be found by examining the leaked source code of the website.
 
 The challenge provided us three source code files: `functions.php`, `include.php`, and `requests.php`.
 
 
-![9763d12dadb18e84d0e8e36bf7319257.png](../../_resources/98db4a5f4f434f408b8fa0ecf0384a5c.png)
+![9763d12dadb18e84d0e8e36bf7319257.png](/assets/images/98db4a5f4f434f408b8fa0ecf0384a5c.png)
 
 
 Below is a detailed examination of what we can find from each file.
@@ -48,12 +48,12 @@ Below is a detailed examination of what we can find from each file.
 This file is the source code of the page where we request a MagicHash. From there, we know that there is no email being sent at all. The input was sanitized using `mysqli_real_escape_string()` function, so it's unlikely that this challenge is about SQL Injection.
 
 
-![6fe376bd06b58222f9e75d12589139cc.png](../../_resources/eb436f8f29ab40bd879f460838e9212f.png)
+![6fe376bd06b58222f9e75d12589139cc.png](/assets/images/eb436f8f29ab40bd879f460838e9212f.png)
 
 Also, a function named `generateMagicHashToken()` is called. And if the supplied email can be found in the database, both the email and the generated token will be stored in a table named `magic_hashes`.
 
 
-![67a3337c53799eac13d859f4fb1c5446.png](../../_resources/c10cb5a45bd349318c143b35823ac659.png)
+![67a3337c53799eac13d859f4fb1c5446.png](/assets/images/c10cb5a45bd349318c143b35823ac659.png)
 
 
 ### Functions.php
@@ -85,7 +85,7 @@ This file contains some functions that are used to run the website. There are fo
     Judging by the name, this function is used to generate a token for a session or cookie. The website uses a cookie called `secure-session`, with base64-encoded string as the value.
     
 
-    ![95d5de0520d319679cd73fa18e70de62.png](../../_resources/ea120af7fbc249a799d8f6d0066786d2.png)
+    ![95d5de0520d319679cd73fa18e70de62.png](/assets/images/ea120af7fbc249a799d8f6d0066786d2.png)
     
     The decoded value of the cookie would be something like this:
     ```
@@ -109,7 +109,7 @@ This file contains some functions that are used to run the website. There are fo
 This file confirms our guesses about some functions in `functions.php`. `throwSeed()` is used to supply a seed value to `mt_srand()` value. And `secure-session` cookie's value is coming from `createSession()` function.
 
 
-![de77bbe27ae843e2bb6034dfc919083d.png](../../_resources/4d32e9b185674db38643753146e0b1f5.png)
+![de77bbe27ae843e2bb6034dfc919083d.png](/assets/images/4d32e9b185674db38643753146e0b1f5.png)
 
 This challenge is based on [this](https://www.ambionics.io/blog/php-mt-rand-prediction) research from Ambionics Security. The goal is to predict the seed that was supplied to `mt_srand()` in `include.php` file, to generate the MagicHash token of our own. It's a good thing to read and even understand how the attack work; but for the sake of simplicity, I will summarize it. 
 
@@ -340,7 +340,7 @@ guessed_seed = solve(int(first), int(second), 13, 1)
 print("Guessed Seed: %s" % guessed_seed) # we guessed the seed!
 ```
 
-![f89ff2bcba0c9cc394b4551166c8651d.png](../../_resources/8aa19190a6d2403e98b7d28879e8decc.png)
+![f89ff2bcba0c9cc394b4551166c8651d.png](/assets/images/8aa19190a6d2403e98b7d28879e8decc.png)
 
 After we get the seed, we can recreate the MagicHash of our own. We just need to re-run everything that the web does, given the fact that we have some of the source code. Here's the PHP script to do that, adapted from the given source code:
 
@@ -373,32 +373,32 @@ Just remember that the `createSession()` function is always called first before 
 
 Here's my MagicHash token guessed by the PHP script:
 
-![cebc341586d140068cf05bb2fc8db53a.png](../../_resources/692ff4fb579a43bdb9fa2a70ac6c1b2c.png)
+![cebc341586d140068cf05bb2fc8db53a.png](/assets/images/692ff4fb579a43bdb9fa2a70ac6c1b2c.png)
 
 
 After that, if you haven't, request a MagicHash from the web.
 
 
 
-![3e63e2c22ae630219f5b64e47fe00590.png](../../_resources/28d08ae4924f40cfb488c73379534573.png)
+![3e63e2c22ae630219f5b64e47fe00590.png](/assets/images/28d08ae4924f40cfb488c73379534573.png)
 
 
 And use the guessed MagicHash to unlock the Flag directory.
 
 
-![1541c16e0e2395834b72cec388793a83.png](../../_resources/43a2352ff1624a0c9bd6a48142558262.png)
+![1541c16e0e2395834b72cec388793a83.png](/assets/images/43a2352ff1624a0c9bd6a48142558262.png)
 
 
 And there's the flag.
 
 
-![08f1e57467462fb39e0f75191c892f23.png](../../_resources/d585461f1866441b9e276d520b4f0c43.png)
+![08f1e57467462fb39e0f75191c892f23.png](/assets/images/d585461f1866441b9e276d520b4f0c43.png)
 
 
 But, once again, the value in the **comment** column is a base64-encoded string. Decode it and you shall get the flag.
 
 
-![92364cfd9ee9233667d0231ce21a3417.png](../../_resources/207bb0bc22eb4abd8148de633ae28c07.png)
+![92364cfd9ee9233667d0231ce21a3417.png](/assets/images/207bb0bc22eb4abd8148de633ae28c07.png)
 
 
 ## The Flag

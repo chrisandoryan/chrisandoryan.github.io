@@ -1,12 +1,13 @@
 ---
-title: HilltopCTF 2020
-layout: ctf-writeup
-categories: ctf
+title: Memoir
+layout: post
 competition: hilltopctf2020
 ---
 ## Description
 
+
 ![43c9742c71aadc1b9f5302c9d20957d2.png](/assets/images/ac124913209c4c54a939f9b3c2456685.png)
+
 
 ## Solving
 Given a plain text website that says **see what you don't**. 

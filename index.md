@@ -6,5 +6,5 @@ layout: home
 title: Home
 icon: fa-home
 order: 1
-page-type: parent
+pagetype: parent
 ---

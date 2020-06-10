@@ -2,6 +2,7 @@
 title: Heist To The Port
 layout: post
 competition: hilltopctf2020
+categories: ctf
 ---
 ## Description
 

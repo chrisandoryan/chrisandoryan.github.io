@@ -1,5 +1,5 @@
 ---
-title: Tornado
+title: Tornado - [Web, 100pts]
 layout: post
 competition: hilltopctf2020
 ---

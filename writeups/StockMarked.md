@@ -1,5 +1,5 @@
 ---
-title: StockMarked
+title: StockMarked - [Web, 100pts]
 layout: post
 competition: hilltopctf2020
 ---

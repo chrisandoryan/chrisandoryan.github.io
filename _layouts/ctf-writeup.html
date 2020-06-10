@@ -10,6 +10,7 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
+	{%- if _post.competition == page.competition -%}
 		<!-- Page -->
 		<article class="shade-two">
 		  <div class="container">
@@ -20,5 +21,6 @@ layout: default
 			{{- _post.content -}}
 		  </div>
 		</article>
+	{%- endif -%}
 	{%- endfor -%}
 </div>

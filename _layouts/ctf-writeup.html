@@ -11,17 +11,16 @@ layout: default
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
 	{%- if _post.type == "writeup" -%}
-		{%- capture _title -%}
-			<a href="{{- _post.url | absolute_url -}}">{{- _post.title -}}</a>
-		{%- endcapture -%}
-		{%- capture _subtitle -%}
-			{% if _post.author -%}{{- _post.author }} | {% endif %}
-			{{- _post.date | date_to_long_string -}}
-		{%- endcapture -%}
-		{%- capture _excerpt -%}<p>{{- _post.excerpt | strip_html | truncatewords: 100 -}}</p>{%- endcapture -%}
-		{%- capture _link -%}<a href="{{- _post.url | absolute_url -}}">read more</a>{%- endcapture -%}
-		{%- assign _content = _excerpt | append: _link -%}
-		{%- include section.html title=_title subtitle=_subtitle content=_content -%}
+		<!-- Page -->
+		<article class="shade-two">
+		  <div class="container">
+				<header>
+					<h2>{{- page.title -}}</h2>
+					{%- if page.subtitle -%}<p>{{- page.subtitle -}}</p>{%- endif -%}
+				</header>
+			{{- content -}}
+		  </div>
+		</article>
 	{%- endif -%}
 	{%- endfor -%}
 </div>

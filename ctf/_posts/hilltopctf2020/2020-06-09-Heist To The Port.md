@@ -1,16 +1,16 @@
 ---
-title: Memoir
+title: [Web50] - Heist To The Port 
 layout: post
 competition: hilltopctf2020
 type: writeup
 ---
-## Description
+### Description
 
 
 ![43c9742c71aadc1b9f5302c9d20957d2.png](/assets/images/ac124913209c4c54a939f9b3c2456685.png)
 
 
-## Solving
+### Solving
 Given a plain text website that says **see what you don't**. 
 A simple GET request to the website returned `405 Method Not Allowed` status, which indicates that the request method is known but not supported to access the resources.
 
@@ -344,6 +344,6 @@ And there's the flag.
 ![bee463428aa994dbf3f8b4ff42d988fb.png](/assets/images/c0e10931d77d427a98f690908e6e8056.png)
 
 
-## The Flag
+### The Flag
 
 Flag is **HilltopCTF{HTTP_1s_just_4_game_right.}**

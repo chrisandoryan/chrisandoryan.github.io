@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-{%- assign _posts = site.writeups -%}
+{%- assign _posts = site.categories.ctf -%}
 {%- include header.html scrolly_nav=_posts -%}
 <!-- Main -->
 <div id="main">
@@ -14,7 +14,7 @@ layout: default
 		<article class="shade-two">
 		  <div class="container">
 				<header>
-					<h2>{{- _post.title -}}</h2>
+					<h2>{{- _post.competition -}}</h2>
 					{%- if _post.subtitle -%}<p>{{- _post.subtitle -}}</p>{%- endif -%}
 				</header>
 			{{- _post.content -}}

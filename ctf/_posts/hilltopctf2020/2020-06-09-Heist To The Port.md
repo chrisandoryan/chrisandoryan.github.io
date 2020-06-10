@@ -2,6 +2,7 @@
 title: Memoir
 layout: post
 competition: hilltopctf2020
+type: writeup
 ---
 ## Description
 

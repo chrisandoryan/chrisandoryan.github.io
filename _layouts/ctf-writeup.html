@@ -10,12 +10,12 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
-	{%- if _post.competition == page.competition and _post.pagetype == "child"-%}
+	{%- if _post.competition == page.competition -%}
 		<!-- Page -->
 		<article class="shade-five">
 		  <div class="container">
 				<header>
-					<h2>{{- _post.title -}}</h2>
+					<h2>{{- _post.page-type -}}</h2>
 					{%- if _post.subtitle -%}<p>{{- _post.subtitle -}}</p>{%- endif -%}
 				</header>
 			{{- _post.content -}}

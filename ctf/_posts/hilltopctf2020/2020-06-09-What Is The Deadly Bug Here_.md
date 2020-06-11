@@ -2,7 +2,7 @@
 title: What Is The Deadly Bug Here? - [Web, 50pts]
 layout: post
 competition: hilltopctf2020
-page-type: child
+pagetype: child
 categories: ctf
 ---
 ## Description

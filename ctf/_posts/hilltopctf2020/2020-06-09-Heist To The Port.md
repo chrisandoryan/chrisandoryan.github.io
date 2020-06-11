@@ -3,6 +3,7 @@ title: Heist To The Port - [Web, 25pts]
 layout: post
 competition: hilltopctf2020
 page-type: child
+categories: ctf
 ---
 ### Description
 

@@ -2,6 +2,8 @@
 title: StockMarked - [Web, 100pts]
 layout: post
 competition: hilltopctf2020
+page-type: child
+categories: ctf
 ---
 ## Description
 ![efa64bd1b328af15756e58713896f9e2.png](/assets/images/f4b0192cb9434642a073400b28e965b5.png)

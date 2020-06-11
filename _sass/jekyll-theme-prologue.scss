@@ -242,10 +242,20 @@
 		max-width: 100%;
 	}
 
+	.competition-description-container {
+		display: flex;
+		align-items: center;
+	}
+
+	.competition-description {
+		text-align: left;
+	}
+
 /* Image */
 	.competition-logo {
-		max-width: 50%;
+		max-width: 30%;
 		max-height: 50%;
+		float: left;
 	}
 
 	.image {

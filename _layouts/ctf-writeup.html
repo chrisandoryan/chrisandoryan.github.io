@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-{%- assign _posts = site.categories.ctf -%}
+{%- assign _posts = site.categories.ctf | sort: 'date' | reverse -%}
 {%- include header.html scrolly_nav=_posts -%}
 <!-- Main -->
 <div id="main">
@@ -10,6 +10,8 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
+	<h2>{{- _post.competition -}}</h2>
+	<h2>{{- page.competition -}}</h2>
 	{%- if _post.competition == page.competition -%}
 		<!-- Page -->
 		<article class="shade-five">

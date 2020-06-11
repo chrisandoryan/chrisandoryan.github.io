@@ -48,9 +48,9 @@
         {%- else -%}
           {%- assign _class = 'icon' -%}
         {%- endif -%}
-        <!-- {%- if _sect.pagetype != "child" -%} -->
-          <li><a href="#{{- _slug -}}" id="{{- _slug -}}-link" class="scrolly"><span class="{{ _class }} {{ _icon }}">{{- _sect.pagetype -}}</span></a></li>
-        <!-- {%- endif -%} -->
+        {%- if _sect.pagetype != "child" -%}
+          <li><a href="#{{- _slug -}}" id="{{- _slug -}}-link" class="scrolly"><span class="{{ _class }} {{ _icon }}">{{- _title -}}</span></a></li>
+        {%- endif -%}
       {%- endfor -%}
     {%- endunless -%}
   </ul>

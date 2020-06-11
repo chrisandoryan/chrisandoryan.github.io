@@ -10,9 +10,7 @@ layout: default
 	{%- endif -%}
 	<!-- Posts List -->
 	{%- for _post in _posts -%}
-	<h2>{{- _post.competition -}}</h2>
-	<h2>{{- page.competition -}}</h2>
-	{%- if _post.competition == page.competition -%}
+	{%- if _post.competition == page.competition and _post.pagetype == "child" -%}
 		<!-- Page -->
 		<article class="shade-five">
 		  <div class="container">

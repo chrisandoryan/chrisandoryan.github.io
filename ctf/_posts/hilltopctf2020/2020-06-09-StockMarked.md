@@ -5,6 +5,8 @@ competition: hilltopctf2020
 pagetype: child
 categories: ctf
 ---
+{% raw %}
+
 ## Description
 ![efa64bd1b328af15756e58713896f9e2.png](/assets/images/f4b0192cb9434642a073400b28e965b5.png)
 
@@ -162,3 +164,4 @@ The flag can be found in `/flag.txt`.
 ## The Flag
 
 Flag is **HilltopCTF{The_mult1millionaire_next_door_$$$}**
+{% endraw %}

@@ -5,6 +5,8 @@ competition: hilltopctf2020
 pagetype: child
 categories: ctf
 ---
+{% raw %}
+
 ## Description
 
 
@@ -164,3 +166,4 @@ And there's the flag.
 
 ## The Flag
 Flag is **HilltopCTF{uh...1think_1mad3_itwors3_s00wy}**
+{% endraw %}

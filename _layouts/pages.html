@@ -52,7 +52,7 @@
               <!-- Only display if the post is correct in category (ctf, htb, etc.)  -->
               {% if post.category == page.category %}
                 <div>
-                  <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+                  <a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
                   <p class="post-date">Published {{ post.date | date: "%-d %B %Y" }}</p>
                   <p>{{ post.content }}</p>
                 </div>

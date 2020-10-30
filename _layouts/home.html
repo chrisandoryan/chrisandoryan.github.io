@@ -48,7 +48,7 @@
         <div class="navigation">
           {% for category in page.listings %}
           <div class="topic-container">
-            <h3 class="title">{{ category[0] }}</h3>
+            <h2 class="title">{{ category[0] }}</h2>
             <ul>
             {% for listing in category[1] %}
             <div>
@@ -58,7 +58,7 @@
                 <a href="{{ listing[1].link | baseurl }}">
                   {% endif %}
                   <img src="{{ listing[1].icon | relative_url }}" />
-                  <h5 class="button">{{ listing[0] }}</h5>
+                  <h4 class="button">{{ listing[0] }}</h4>
                 </a>
             </div>
             {% endfor %}

@@ -45,14 +45,34 @@
 
         {{ content }}
 
+        <!-- Table of Contents -->
+        <div>
+          <h3>Table of Contents</h3>
+          <ul>
+          {% for post in site.posts %}
+            <!-- Only display .md with type 'post' -->
+            {% if post.type == 'post' %}
+              <!-- Only display if the post is correct in category (ctf, htb, etc.)  -->
+              {% if post.topic == page.topic %}
+              <li>
+                <a>{{ post.title }}</a>
+              </li>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          </ul>
+        </div>
+
+        <hr>
+
         <div>
           {% for post in site.posts %}
             <!-- Only display .md with type 'post' -->
             {% if post.type == 'post' %}
               <!-- Only display if the post is correct in category (ctf, htb, etc.)  -->
               {% if post.topic == page.topic %}
-                <div>
-                  <h1>{{ post.title }}</h1>
+                <h3>{{ post.title }}</h3>
+                <div class="post-content">
                   {{ post.content | markdownify }}
                 </div>
               {% endif %}

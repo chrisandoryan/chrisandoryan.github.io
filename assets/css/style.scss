@@ -2,10 +2,16 @@
 ---
 
 @import "jekyll-theme-dracula";
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
 
-h1, h2, h3, h4, h5, h6, * {
+* {
     font-family: 'Fira Code', monospace;
+    font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fira Code', monospace;
+    font-weight: 600;
 }
 
 .title {
@@ -35,4 +41,16 @@ section #title {
     display: flex;
     align-items: middle;
     justify-content: center;
+}
+
+.post-content {
+    margin-bottom: 4em;
+}
+
+.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+    font-size: 1.2em;
+    color: #50fa7b;
+}
+
+.post-content p {
 }

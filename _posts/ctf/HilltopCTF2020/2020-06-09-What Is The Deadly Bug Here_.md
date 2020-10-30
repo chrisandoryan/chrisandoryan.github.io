@@ -110,13 +110,14 @@ There is some interesting information that we can get by statically analyzing th
     ```
     basically strips out every special character from the `$greet` variable.
 5. If the `mac` we provide (`$_GET['mac'`) is not equals to the generated `mac` value, the application is terminated. So we need to make sure that both are the same.
+
 6. Finally, this line of code:
     ```
     echo passthru("cat $greet 2>&1", $err);
     ```
     is how we are gonna get the flag. The `$greet` variable, which we can control, will be passed into `passthru` function; which will then be executed as a shell command.
 
-*Hash Length Extension Attack* is a type of attack where an attacker can use a computed hash (Hash(*message1*)) and the length of the message (message1*) to calculate another hash (Hash(*message1* || *message2*)) for an attacker-controlled message (message2). An application is susceptible to a hash length extension attack if it prepends a secret value to a string, hashes it with a vulnerable algorithm, and entrusts the attacker with both the string and the hash, but not the secret. Then, the server relies on the secret to decide whether or not the data returned later is the same as the original data (read more [here](https://blog.skullsecurity.org/2012/everything-you-need-to-know-about-hash-length-extension-attacks)).
+*Hash Length Extension Attack* is a type of attack where an attacker can use a computed hash `(Hash(*message1*))` and the length of the message (message1*) to calculate another hash `(Hash(*message1* || *message2*))` for an attacker-controlled message. An application is susceptible to a hash length extension attack if it prepends a secret value to a string, hashes it with a vulnerable algorithm, and entrusts the attacker with both the string and the hash, but not the secret. Then, the server relies on the secret to decide whether or not the data returned later is the same as the original data (read more [here](https://blog.skullsecurity.org/2012/everything-you-need-to-know-about-hash-length-extension-attacks)).
 
 This challenge gives us a hash value and it's original data by sending the `X-MY-GREET` and `X-MY-GREET-MAC` header on the response. Thus, without knowing the secret, we can generate a valid hash for `secret + greet.txt + <arbitrary evil data>` without knowing the value of the prepended secret. We can use *bash command separation* to execute arbitrary command after reading the value of `greet.txt`. Simply put, this would be the payload we want to be passed to the `passthru` function:
 ```

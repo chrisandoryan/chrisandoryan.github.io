@@ -52,7 +52,8 @@
               <!-- Only display if the post is correct in category (ctf, htb, etc.)  -->
               {% if post.topic == page.topic %}
                 <div>
-                  {{ post.content }}
+                  <h1>{{ post.title }}</h1>
+                  {{ post.content | markdownify }}
                 </div>
               {% endif %}
             {% endif %}

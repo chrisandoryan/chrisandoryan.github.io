@@ -1,8 +1,8 @@
-title: Dracula GitHub Pages
+title: Siahaan's Netkid.
 show_downloads: false
 google_analytics:
 remote_theme: "dracula/gh-pages"
-show_header: true
+show_header: false
 
 sass:
     style: compressed

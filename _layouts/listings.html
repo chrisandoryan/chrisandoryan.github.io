@@ -43,29 +43,29 @@
           <hr>
         </div>
 
-        {{ content }}
-
-        <div class="listings">
+        <div class="navigation">
           {% for category in page.listings %}
-            <div class="listings-category">
-              <h2 class="title">{{ category[0] }}</h2>
-              {% for listing in category[1] %}
-                <div class="listing">
-                  {% if listing[1].link contains 'http' %}
-                    <a href="{{ listing[1].link }}">
-                  {% else %}
-                    <a href="{{ listing[1].link | baseurl }}">
+          <div class="topic-container">
+            <h3 class="title">{{ category[0] }}</h3>
+            <ul>
+            {% for listing in category[1] %}
+            <div>
+              {% if listing[1].link contains 'http' %}
+              <a href="{{ listing[1].link }}">
+                {% else %}
+                <a href="{{ listing[1].link | baseurl }}">
                   {% endif %}
-                    <img src="{{ listing[1].icon | relative_url }}" />
-                    <h3>{{ listing[0] }}</h3>
-                  </a>
-                </div>
-              {% endfor %}
+                  <img src="{{ listing[1].icon | relative_url }}" />
+                  <h5 class="button">{{ listing[0] }}</h5>
+                </a>
             </div>
+            {% endfor %}
+            </ul>
+          </div>
           {% endfor %}
         </div>
 
-        <a href="../" class="button">Back</a>
+        {{ content }}
 
         <div id="footer">
           <hr />

@@ -96,6 +96,7 @@ There is some interesting information that we can get by statically analyzing th
     ```
     if (isset($_GET['greet'])) $greet = $_GET['greet'];
     ```
+    
 2. If you get the reference, this challenge is based on [this](https://www.youtube.com/watch?v=MpeaSNERwQA) video on Youtube by LiveOverflow. `hash_hmac` function in that video is more or less the same with `patched` function in this challenge, but supplying an array into the function would not work anymore because of this line of code:
     ```
     if (is_string($string)) {
@@ -103,12 +104,15 @@ There is some interesting information that we can get by statically analyzing th
     }
     ```
     Anyway, if you don't understand what I'm talking about, please watch the video, it's all there :).
+
 3. The `patched` function validates our input and returns a message-digested hash value from the input. The difference between this and the function in [that](https://www.youtube.com/watch?v=MpeaSNERwQA) video is: with the intention of patching (or should I say securing) the application, this challenge uses `hash` function instead of `hash_hmac` function to generate the hash value. By doing that, the application is potentially vulnerable to *Hash Length Extension Attack*. We'll come back to this very soon.
+
 4. This line of code:
     ```
     $greet = filter_var($greet, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW|FILTER_FLAG_STRIP_HIGH);
     ```
     basically strips out every special character from the `$greet` variable.
+
 5. If the `mac` we provide (`$_GET['mac'`) is not equals to the generated `mac` value, the application is terminated. So we need to make sure that both are the same.
 
 6. Finally, this line of code:

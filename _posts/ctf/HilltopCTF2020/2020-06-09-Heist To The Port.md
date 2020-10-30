@@ -4,7 +4,6 @@ layout: default
 type: post
 topic: hilltopctf2020
 ---
-{% raw %}
 
 ### Description
 
@@ -348,4 +347,3 @@ And there's the flag.
 ### The Flag
 
 Flag is **HilltopCTF{HTTP_1s_just_4_game_right.}**
-{% endraw %}

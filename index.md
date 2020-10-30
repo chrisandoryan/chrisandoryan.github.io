@@ -1,5 +1,5 @@
 ---
-layout: welcome
+layout: home
 listings:
   'Security':
     'Capture{TheFlag}':

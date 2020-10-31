@@ -2,21 +2,21 @@
 layout: home
 listings:
   'Security':
-    'netkid:~$ Capture{The_Flag_a4ddb7}':
+    'Capture{The_Flag_a4ddb7}':
       link: '/ctf'
       # icon: '/assets/images/ctf.png'
-    'netkid:~$ HTB':
+    'HTB':
       link: '/htb'
       # icon: '/assets/images/htb.jpg'
-    'netkid:~$ TryHackMe':
+    'TryHackMe':
       link: '/htb'
       # icon: '/assets/images/htb.jpg'
   'Projects':
-    'netkid:~$ Dev & Experiments':
+    'Dev & Experiments':
       link: '/dev'
       # icon: '/assets/images/dev.png'
   'Miscellaneous':
-    'netkid:~$ whoami':
+    'whoami':
       link: '/me'
       # icon: '/assets/images/dev.png'
 ---

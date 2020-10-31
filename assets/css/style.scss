@@ -30,6 +30,7 @@ h1, h2, h3, h4, h5, h6 {
 
 section #title {
     margin-bottom: 0em;
+    padding-bottom: 0em;
 }
 
 .category-icon {
@@ -52,5 +53,7 @@ section #title {
     color: #50fa7b;
 }
 
-.post-content p {
+#breadcrumbs {
+    margin-top: 1em;
+    margin-bottom: 1em;
 }

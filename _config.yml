@@ -22,9 +22,8 @@ title: Netlogs.                          # the main title
 tagline: A logbook for writeups, technically?   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
-  A minimal, portfolio, sidebar,
-  bootstrap Jekyll theme with responsive web design
-  and focuses on text presentation.
+  In this blog you’ll find Siahaan's writings. 
+  They’ll be mostly about Cyber Security and Programming, so please don’t expect something else.
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
 url: 'https://chrisandoryan.github.io'
@@ -71,7 +70,7 @@ google_analytics:
 #     light  - Use the light color scheme
 #     dark   - Use the dark color scheme
 #
-theme_mode:   # [light|dark]
+theme_mode: dark
 
 # The CDN endpoint for images.
 # Notice that once it is assigned, the CDN url

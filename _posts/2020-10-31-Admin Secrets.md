@@ -1,8 +1,15 @@
 ---
 title: Admin Secrets - [Web, 100pts]
-layout: default
-type: post
-topic: tjctf2020
+author: Siahaan
+date: 2019-08-08 11:33:00 +0800
+categories: [CTF, Web Exploitation]
+tags: [tjctf2020]
+math: true
+mermaid: true
+image:
+  src: https://cdn.jsdelivr.net/gh/cotes2020/chirpy-images/commons/devices-mockup.png
+  width: 850
+  height: 585
 ---
 
 Given a website, where a person can login and register. Both are unrelevant to the challenge, so I will cut the chase. The other feature, the 'relevant' feature of the challenge, is a feature that allows user to write a note and even send the note to an **admin** (evil laugh). It isn't hurt to think that this might be an XSS challenge, and I did that. 

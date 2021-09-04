@@ -4,7 +4,7 @@ icon: fas fa-info
 order: 4
 ---
 
-**I'm Chrisando Ryan aka Siahaan, a cybersecurity practitioner breathing in dev's world.**
+**I'm Chrisando (Siahaan) Ryan, a cybersecurity practitioner breathing in dev's world.**
 
 Graduated as a bachelor's in Cyber Security and currently pursuing a master's in Data Science at [Bina Nusantara University](http://binus.ac.id/), Jakarta. Currently responsible as a Lecturer Specialist for Cyber Security at School of Computer Science, Bina Nusantara University.
 
@@ -20,5 +20,5 @@ Graduated as a bachelor's in Cyber Security and currently pursuing a master's in
 
 
 
-**Badges?**  
+**Badges**  
 [ ![siahaan](https://www.hackthebox.eu/badge/image/13653)](https://app.hackthebox.eu/profile/13653)

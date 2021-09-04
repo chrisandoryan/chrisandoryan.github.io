@@ -1,0 +1,2 @@
+I"|<p>Given a website, where a person can login and register. Both are irrelevant to the challenge, so I will cut the chase. The other feature, the ‘relevant’ feature of the challenge, is a feature that allows user to write a note and even send the note to an <strong>admin</strong> (evil laugh). It isn’t hurt to think that this might be an XSS challenge, and I did that.</p>
+:ET

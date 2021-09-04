@@ -1,0 +1,125 @@
+I"�(<h2 id="description">Description</h2>
+
+<p><img src="/assets/img/post_images/8b00e9eab92e4339ae5d57aee2521db5.png" alt="f9b9f0e9b42c22181c47dd573a9e94cb.png" /></p>
+
+<h2 id="solving">Solving</h2>
+<p>Given a website where you can enter any URL, the web will visit them and display the response.</p>
+
+<p><img src="/assets/img/post_images/01af7c17e7cc4c25a38dbfbabee8acf9.png" alt="b3d7471fa2240c07320a062d27ba4bd6.png" /></p>
+
+<p>Fast examination in the Network tab from the Developer Console Window indicates that the URL will be sent to <code class="language-plaintext highlighter-rouge">/snapshot</code> endpoint along with another parameter called <code class="language-plaintext highlighter-rouge">timeout</code>, which has a default value of 0 (since I didn’t provide any value for the <code class="language-plaintext highlighter-rouge">timeout</code> parameter).</p>
+
+<p><img src="/assets/img/post_images/6e65ed2348274c9e9d47d3e4eb1d427d.png" alt="ce67c8f8b2c50205b7a0795847d3e5f1.png" /></p>
+
+<p><img src="/assets/img/post_images/eaaed387921246029fa46ba18b535e69.png" alt="20bb9ca139a1b128f6b5e2d62448eb77.png" /></p>
+
+<p>The challenge title: “Deer Nova Startup” indicates that this challenge might be related to a DNS or Domain Name System. DNS is used to resolves the names of internet sites (domain names) with their underlying IP addresses.</p>
+
+<p>Furthermore, examining the HTML source code of the website shows that the <code class="language-plaintext highlighter-rouge">timeout</code> parameter is located inside a hidden <code class="language-plaintext highlighter-rouge">input</code> value in the <code class="language-plaintext highlighter-rouge">#url-form</code> form. And we can control this hidden parameter.</p>
+
+<p><img src="/assets/img/post_images/0d39a33c69fe43eaa4e363c130c6a710.png" alt="57b6855fb700ec3bf83d9ef0b9b5dec8.png" /></p>
+
+<p>And from the challenge description, there’s an indication that the goal is to <strong>gain access to their private network</strong> (or local network, perhaps). But, trying to provide <code class="language-plaintext highlighter-rouge">http://localhost/</code> or <code class="language-plaintext highlighter-rouge">http://127.0.0.1/</code> as the URL is not allowed. The web might do some checking to make sure that the supplied URL didn’t point to the local network.</p>
+
+<p><img src="/assets/img/post_images/4ce92420ba4d4659bb8102b594cb10c1.png" alt="3d43557d6d996bfe3bec26de44ada5d5.png" /></p>
+
+<p>With that information, there are at least two ways to solve this challenge.</p>
+
+<h3 id="first-way">First Way</h3>
+<p>The first option is a faster way to solve this challenge. To understand how this first option works, we need to understand the <em>syntax</em> of an URL.</p>
+
+<p>Every HTTP URL conforms to the syntax of a generic URI. The URI generic syntax consists of a hierarchical sequence of five components:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>scheme:[//authority]path[?query][#fragment]
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>Where the authority component divides into three subcomponents:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>[userinfo@]host[:port]
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>So if we tend to visit a URL like this:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://example.com/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The HTTP specification supports a URL like this:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://username:password@example.com/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>By submitting that instead of the default URL, it might trick the checking mechanism of the website and gave up access to the local network.</p>
+
+<p>So here’s the payload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the result:</p>
+
+<p><img src="/assets/img/post_images/397812eca31e42388727e78bdcd3ae94.png" alt="4848d89fbe5e21f7ed0714b420824265.png" /></p>
+
+<p>After gaining access to the local network, the server gives information about <code class="language-plaintext highlighter-rouge">/action/hello</code> endpoint, which only prints “hello”.</p>
+
+<p><img src="/assets/img/post_images/fb8c8676946c4ac4a64185e8e4575436.png" alt="7438d507941d5ec88c9c0d73b68eb29b.png" /></p>
+
+<p>But if we tried to access different words other than “hello”, it simply just mirrored the word. For example, visiting <code class="language-plaintext highlighter-rouge">/action/harambayombabo</code> (its a random word, which by common sense is not possible to exist as a static endpoint) result in the web printed “harambayombabo”.</p>
+
+<p><img src="/assets/img/post_images/c1b7a8a7e1884e1d8bed8ad5b66ddeb9.png" alt="4915134c35067184689c4ea777efdf29.png" /></p>
+
+<p>We know that the server will print everything we supplied. So the endpoint structure might be looked like this:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/action/&lt;user-input&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>We also know that the webserver is running <code class="language-plaintext highlighter-rouge">gunicorn</code>, a Python WSGI HTTP Server, by examining the response header of any request we send to the server.</p>
+
+<p><img src="/assets/img/post_images/15cb3b3eabdd46b0a9ea224f0cb17f47.png" alt="d8ef5928f3145072c54cd6851a79a442.png" /></p>
+
+<p>That means SSTI (Server Side Template Injection) is a possibility since it’s a bit common in Python websites.</p>
+
+<p>To test the theory, we can simply send this payload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/action/\{\{7*7\}\}
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>And see if the template expression (curly braces, <code class="language-plaintext highlighter-rouge">\{\{ \}\}</code>) is evaluated. If so, the website is likely to be vulnerable to SSTI. And it is.</p>
+
+<p><img src="/assets/img/post_images/5e8f967c35a245368862d431af3bb57d.png" alt="6b92cab544268c678414b2605dc42ff2.png" /></p>
+
+<p>One of the commonplace to examine is inside the <code class="language-plaintext highlighter-rouge">config</code> variable, but this time it is blacklisted, since sending this payload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/action/{{config}}
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>Made the server responded with:</p>
+
+<p><img src="/assets/img/post_images/e6c328ea6bcd49bd893608d8b8060b39.png" alt="5b7328be19775605605ec4bb269883e9.png" /></p>
+
+<p>So the idea is to get into <code class="language-plaintext highlighter-rouge">config</code> by using another method. Flask has an interesting function named <code class="language-plaintext highlighter-rouge">url_for</code>, which when we accessed its <code class="language-plaintext highlighter-rouge">__globals__</code> attribute, it has an interesting variable called <code class="language-plaintext highlighter-rouge">current_app</code>.</p>
+
+<p>By sending this payload:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/action/{{url_for.__globals__.current_app}}
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The server responded with:</p>
+
+<p><img src="/assets/img/post_images/ce2f644e653f4597aef13fd869bee735.png" alt="2b9ee28e9a76a0bebf94b7263b325aa6.png" /></p>
+
+<p>Which means we’re back to the <code class="language-plaintext highlighter-rouge">app</code> object where the <code class="language-plaintext highlighter-rouge">config</code> attribute is. From there, simply access the <code class="language-plaintext highlighter-rouge">config</code> variable like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://:admin@localhost/action/{{url_for.__globals__.current_app.config}}
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And voila flag:</p>
+
+<p><img src="/assets/img/post_images/da673ef4384c401f99546631162bd55c.png" alt="8e12aefb12470b86d82b1560d3b1a154.png" /></p>
+
+<h3 id="second-way">Second Way</h3>
+<p>The other, maybe-longer way to solve this is by using DNS Rebinding attack, where we trick the web by sending a domain that points to some non-localhost IPs, and then use <code class="language-plaintext highlighter-rouge">timeout</code> parameter to create a delay until the domain’s TTL expired and we changed it into local IPs (127.0.0.1). Once we managed to gain access to the local website, the SSTI exploit is the same. I’ll finish the writeup for this attack in a few days. Stay tuned!</p>
+
+<h2 id="the-flag">The Flag</h2>
+<p>Flag is <strong>HilltopCTF{d0n’t_Scr3w_w1th_:Divergence-Novelty-System_lm40}</strong></p>
+:ET

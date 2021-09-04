@@ -6,14 +6,12 @@ categories: [CTF, Web Exploitation]
 tags: [HilltopCTF2020, Self-authored]
 math: true
 mermaid: true
+image:
+  src: /assets/img/post_images/ac124913209c4c54a939f9b3c2456685.png
+  width: 400
+  height: 400
 ---
 
-### Description
-
-![43c9742c71aadc1b9f5302c9d20957d2.png](/assets/img/post_images/ac124913209c4c54a939f9b3c2456685.png)
-
-
-### Solving
 Given a plain text website that says **see what you don't**. 
 A simple GET request to the website returned `405 Method Not Allowed` status, which indicates that the request method is known but not supported to access the resources.
 

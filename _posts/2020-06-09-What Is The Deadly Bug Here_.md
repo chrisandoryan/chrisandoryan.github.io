@@ -6,15 +6,11 @@ categories: [CTF, Web Exploitation]
 tags: [HilltopCTF2020, Self-authored]
 math: true
 mermaid: true
+image:
+  src: /assets/img/post_images/ec6165ad18424803876d01a024adcda0.png
+  width: 400
+  height: 400
 ---
-
-## Description
-
-
-![c9fd42053c1860b5e8adc479279ffeef.png](/assets/img/post_images/ec6165ad18424803876d01a024adcda0.png)
-
-
-## Solving
 
 Given a simple website that looks like this.
 

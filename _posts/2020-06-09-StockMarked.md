@@ -6,12 +6,12 @@ categories: [CTF, Web Exploitation]
 tags: [HilltopCTF2020, Self-authored]
 math: true
 mermaid: true
+image:
+  src: /assets/img/post_images/f4b0192cb9434642a073400b28e965b5.png
+  width: 400
+  height: 400
 ---
 
-## Description
-![efa64bd1b328af15756e58713896f9e2.png](/assets/img/post_images/f4b0192cb9434642a073400b28e965b5.png)
-
-## Solving
 Given a website that seems like a plain stock trading website.
 ![74801145c620d176fc339b8682b79e13.png](/assets/img/post_images/fdd2d617235c48abaa03cd58c34f4652.png)
 

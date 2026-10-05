@@ -1,97 +1,66 @@
 ---
-layout: page
-# The Home page layout
+layout: default
 ---
-
-{% include lang.html %}
-
-{% assign pinned = site.posts | where: "pin", "true" %}
-{% assign default = site.posts | where_exp: "item", "item.pin != true" %}
-
-{% assign posts = "" | split: "" %}
-
-<!-- Get pinned posts -->
-
-{% assign offset = paginator.page | minus: 1 | times: paginator.per_page %}
-{% assign pinned_num = pinned.size | minus: offset %}
-
-{% if pinned_num > 0 %}
-  {% for i in (offset..pinned.size) limit: pinned_num %}
-    {% assign posts = posts | push: pinned[i] %}
-  {% endfor %}
-{% else %}
-  {% assign pinned_num = 0 %}
-{% endif %}
-
-
-<!-- Get default posts -->
-
-{% assign default_beg = offset | minus: pinned.size %}
-
-{% if default_beg < 0 %}
-  {% assign default_beg = 0 %}
-{% endif %}
-
-{% assign default_num = paginator.posts | size | minus: pinned_num  %}
-{% assign default_end = default_beg | plus: default_num | minus: 1 %}
-
-{% if default_num > 0 %}
-  {% for i in (default_beg..default_end) %}
-    {% assign posts = posts | push: default[i] %}
-  {% endfor %}
-{% endif %}
-
-<div id="post-list">
-
-{% for post in posts %}
-
-  <div class="post-preview">
-    <h1>
-      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-    </h1>
-
-    <div class="post-content">
-      <p>
-        {% include no-linenos.html content=post.content %}
-        {{ content | markdownify | strip_html | truncate: 200 }}
-      </p>
-    </div>
-
-    <div class="post-meta text-muted d-flex justify-content-between">
-
-      <div>
-        <!-- posted date -->
-        <i class="far fa-calendar fa-fw"></i>
-        {% include timeago.html date=post.date tooltip=true %}
-
-        <!-- time to read -->
-        <i class="far fa-clock fa-fw"></i>
-        {% include read-time.html content=post.content %}
-
-        <!-- page views -->
-        {% if site.google_analytics.pv.proxy_endpoint or site.google_analytics.pv.cache_path %}
-        <i class="far fa-eye fa-fw"></i>
-        <span id="pv_{{-post.title-}}" class="pageviews">
-          <i class="fas fa-spinner fa-spin fa-fw"></i>
+<section class="hero">
+  <div class="hero-text">
+    <h1 class="hero-title">{{ site.tagline }}</h1>
+    <p class="hero-sub">Security research, writeups and notes by <a href="{{ '/about/' | relative_url }}">Chrisando ‘Siahaan’ Ryan</a>, explained step by step with the code that matters.</p>
+  </div>
+  {% assign hero_names = site.hero_snippet | default: 'random' | join: ',' | split: ',' %}
+  {% if hero_names contains 'random' %}
+    {% assign hero_docs = site.hero %}
+  {% else %}
+    {% assign hero_docs = site.hero | where_exp: 'd', 'hero_names contains d.slug' %}
+  {% endif %}
+  {% if hero_docs.size > 0 %}
+  <div class="payload-stack" data-payloads>
+    {% for h in hero_docs %}
+    {% if h.link and h.link != '' %}{% assign tag = 'a' %}{% else %}{% assign tag = 'div' %}{% endif %}
+    <{{ tag }} class="payload{% if tag == 'a' %} is-link{% endif %}{% if h.align == 'center' %} align-center{% endif %}"{% if tag == 'a' %} href="{{ h.link | relative_url }}"{% endif %}{% unless forloop.first %} hidden{% endunless %}>
+      <span class="payload-head">
+        <span class="payload-meta">
+          <span class="payload-title">{{ h.title }}</span>
+          {% if h.subtitle and h.subtitle != '' %}<span class="payload-date">{{ h.subtitle }}</span>{% endif %}
         </span>
-        {% endif %}
-      </div>
+        {% if h.label and h.label != '' %}<span class="payload-topic">{{ h.label }}</span>{% endif %}
+      </span>
+      <div class="payload-code">{{ h.content | markdownify }}</div>
+    </{{ tag }}>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
 
-      {% if post.pin %}
-      <div class="pin">
-        <i class="fas fa-thumbtack fa-fw"></i>
-        <span>{{ site.data.locales[lang].post.pin_prompt }}</span>
-      </div>
-      {% endif %}
-
-    </div> <!-- .post-meta -->
-
-  </div> <!-- .post-review -->
-
-{% endfor %}
-
-</div> <!-- #post-list -->
-
-{% if paginator.total_pages > 0 %}
-  {% include post-paginator.html %}
+{% assign latest = site.posts.first %}
+{% if latest %}
+<section class="featured" aria-labelledby="featured-title">
+  <p class="featured-label">Latest</p>
+  <h2 class="featured-title" id="featured-title"><a href="{{ latest.url | relative_url }}">{{ latest.title }}</a></h2>
+  <p class="featured-excerpt">{{ latest.excerpt | strip_html | normalize_whitespace | truncatewords: 48 }}</p>
+  <p class="featured-meta">
+    {% for c in latest.categories %}<a class="chip" href="{{ '/categories/' | relative_url }}#{{ c | slugify }}">{{ c }}</a>{% endfor %}
+    <span class="featured-time">{% include post-meta.html post=latest %}</span>
+  </p>
+</section>
 {% endif %}
+
+<section class="all-posts" aria-labelledby="all-posts-title">
+  <h2 class="all-posts-title" id="all-posts-title">All posts</h2>
+  {% assign years = site.posts | group_by_exp: 'p', "p.date | date: '%Y'" %}
+  {% for year in years %}
+  <div class="year">
+    <h3 class="year-label">{{ year.name }}</h3>
+    <ol class="year-list">
+      {% for post in year.items %}
+      {% assign words = post.content | strip_html | number_of_words %}
+      {% assign minutes = words | divided_by: 200 | at_least: 1 %}
+      <li class="entry">
+        <a class="entry-title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+        <span class="entry-topics">{% for c in post.categories %}<a class="chip chip-sm" href="{{ '/categories/' | relative_url }}#{{ c | slugify }}">{{ c }}</a>{% endfor %}</span>
+        <span class="entry-time">{{ minutes }} min</span>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
+</section>

@@ -1,0 +1,16 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <nav class="nav" aria-label="Main">
+      {% assign tabs = site.tabs | sort: 'order' %}
+      {% for tab in tabs %}
+      <a href="{{ tab.url | relative_url }}"{% if page.url == tab.url %} aria-current="page"{% endif %}>{{ tab.title }}</a>
+      {% endfor %}
+      <button class="search-open" type="button" data-search-open aria-label="Search posts">
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="search-open-label">Search</span>
+        <kbd>/</kbd>
+      </button>
+    </nav>
+  </div>
+</header>

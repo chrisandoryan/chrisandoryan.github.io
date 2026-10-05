@@ -1,53 +1,41 @@
-name: 'Automatic build'
+name: Deploy site
+
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - .gitignore
-      - README.md
-      - LICENSE
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  continuous-delivery:
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
         with:
-          fetch-depth: 0  # for posts's lastmod
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7
+          ruby-version: '3.3'
           bundler-cache: true
-
-      - name: Check baseurl
-        run: |
-          baseurl="$(grep '^baseurl:' _config.yml | sed "s/.*: *//;s/['\"]//g;s/#.*//")"
-          if [[ -n $baseurl ]]; then
-            echo "BASE_URL=$baseurl" >> $GITHUB_ENV
-          fi
-
-      - name: Build Site
+      - id: pages
+        uses: actions/configure-pages@v5
+      - run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
-        run: |
-          bundle exec jekyll b -d "_site$BASE_URL"
+      - uses: actions/upload-pages-artifact@v3
 
-      - name: Test Site
-        run: |
-          bash tools/test.sh
-
-      - name: Deploy
-        run: |
-          if [[ -n $BASE_URL ]]; then
-            mv _site$BASE_URL _site-rename
-            rm -rf _site
-            mv _site-rename _site
-          fi
-
-          bash tools/deploy.sh
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
